@@ -1,0 +1,88 @@
+{
+  "status": "success",
+  "message": {
+    "id": 13,
+    "modul": "Mathematics",
+    "slice_id": 45,
+    "course_breakdown": {
+      "Oral": {
+        "breakdown": {
+          "Counts by Object": "B+",
+          "Demonstrates Ordinal Words": "B+",
+          "Makes Equal Sets": "B+"
+        },
+        "scale_id": 1
+      },
+      "Written": {
+        "breakdown": {
+          "Counts by Object": "B+",
+          "Demonstrates Ordinal Words": "B+",
+          "Makes Equal Sets": "B+"
+        },
+        "scale_id": 2
+      }
+    },
+    "num_partitions": 2,
+    "num_years": 3,
+    "dates": {
+      "0": {
+        "start_date": "2019-01-01",
+        "end_date": "2019-07-31"
+      },
+      "1": {
+        "start_date": "2019-08-01",
+        "end_date": "2019-11-30"
+      }
+    },
+    "group_ids": "[2, 4]",
+    "start_date": "2019-01-01",
+    "end_date": "2019-07-31",
+    "groups": {
+      "2": {
+        "name": "BROWN_CLASS",
+        "profile_photo": "",
+        "total": 0,
+        "childids": [],
+        "marked": 0,
+        "published": 0
+      },
+      "4": {
+        "name": "Blue_class",
+        "profile_photo": "",
+        "total": 4,
+        "childids": [
+          {
+            "childid": 129,
+            "firstname": "M",
+            "lastname": "ki",
+            "pictureurl": "<DEFAULT>",
+            "status": "pending"
+          },
+          {
+            "childid": 130,
+            "firstname": "N",
+            "lastname": "hi",
+            "pictureurl": "<DEFAULT>",
+            "status": "Not Found"
+          },
+          {
+            "childid": 131,
+            "firstname": "O",
+            "lastname": "ji",
+            "pictureurl": "<DEFAULT>",
+            "status": "Not Found"
+          },
+          {
+            "childid": 132,
+            "firstname": "P",
+            "lastname": "fi",
+            "pictureurl": "<DEFAULT>",
+            "status": "Not Found"
+          }
+        ],
+        "marked": 0,
+        "published": 0
+      }
+    }
+  }
+}

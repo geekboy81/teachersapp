@@ -1,0 +1,32 @@
+/*
+ *
+ * GroupDetails constants
+ *
+ */
+
+export const DEFAULT_ACTION = 'app/GroupDetails/DEFAULT_ACTION';
+export const LOAD_SCALES = 'app/GroupDetails/LOAD_SCALES';
+export const LOAD_SCALES_SUCCESS = 'app/GroupDetails/LOAD_SCALES_SUCCESS';
+export const LOAD_SCALES_ERROR = 'app/GroupDetails/LOAD_SCALES_ERROR';
+export const LOAD_MODULE = 'app/Module/LOAD_MODULE';
+export const LOAD_MODULE_SUCCESS = 'app/Module/LOAD_MODULE_SUCCESS';
+export const LOAD_MODULE_ERROR = 'app/Module/LOAD_MODULE_ERROR';
+export const LOAD_CHILD_MARKS = 'app/Students/LOAD_CHILD_MARKS';
+export const LOAD_CHILD_MARKS_SUCCESS = 'app/Students/LOAD_CHILD_MARKS_SUCCESS';
+export const LOAD_CHILD_MARKS_ERROR = 'app/Students/LOAD_CHILD_MARKS_ERROR';
+export const LOAD_MODULE_SKILLS_MARKS =
+  'app/GroupDetails/LOAD_MODULE_SKILLS_MARKS';
+export const CLONE_MODULE = 'app/Module/CLONE';
+export const CLONE_MODULE_SUCCESS = 'app/Module/CLONE_SUCCESS';
+export const CLONE_MODULE_ERROR = 'app/Module/CLONE_ERROR';
+export const LOAD_STUDENT_MARKS_DETAILS =
+  'app/Student/LOAD_STUDENT_MARKS_DETAILS';
+export const LOAD_STUDENT_MARKS_DETAILS_SUCCESS =
+  'app/Student/LOAD_STUDENT_MARKS_DETAILS_SUCCESS';
+export const LOAD_STUDENT_MARKS_DETAILS_ERROR =
+  'app/Student/LOAD_STUDENT_MARKS_DETAILS_ERROR';
+export const GET_STUDENT_MARKS_DETAILS = 'GET_STUDENT_MARKS_DETAILS';
+export const GET_STUDENT_MARKS_DETAILS_SUCCESS =
+  'GET_STUDENT_MARKS_DETAILS_SUCCESS';
+export const GET_STUDENT_MARKS_DETAILS_ERROR =
+  'GET_STUDENT_MARKS_DETAILS_ERROR';
