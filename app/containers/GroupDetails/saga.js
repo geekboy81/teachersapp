@@ -85,21 +85,28 @@ export function* getModuleByIdGroupDetailsSaga() {
     yield put(loadModuleError(error));
   }
 }
+
 export function* addModuleSaga(moduleToSave) {
-  yield call(addModuleAPI, moduleToSave);
+  yield call(moduleService.addModule, moduleToSave);
 }
+
 export function* cloneModule() {
   const state = yield select(s => s.groupDetails);
+  console.log('clone state', state);
+
   try {
     const moduleResp = yield call(
       moduleService.getModuleById,
-      state.toClone.module_id,
+      state.toClone.id,
     );
+
     const moduleToSave = moduleResp.message;
     moduleToSave.modul = state.toClone.name;
     moduleToSave.module_name = state.toClone.name;
     moduleToSave.group_ids = JSON.parse(moduleToSave.group_ids);
+
     yield fork(addModuleSaga, moduleToSave);
+
     yield put(cloneModuleSuccess());
     yield put(loadModulesHighLights());
   } catch (e) {

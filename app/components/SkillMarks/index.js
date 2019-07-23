@@ -72,7 +72,11 @@ function SkillMarks({
   ) => {
     e.preventDefault();
     e.stopPropagation();
-    if (!semester.semester.is_current && role !== 'admin' && !module.teacher_override) {
+    if (
+      !semester.semester.is_current &&
+      role !== 'admin' &&
+      !module.teacher_override
+    ) {
       return;
     }
     for (
@@ -91,10 +95,13 @@ function SkillMarks({
       classes.selectedMark;
     grades[gridIndex][year.index][semester.index][grade.index].skillg = skill;
     setGrades([...grades]);
+
     onHandleChangeMark(
       [...grades],
       gridIndex,
       grades[gridIndex][year.index][semester.index][grade.index],
+      year.index + 1,
+      semester.index + 1,
     );
   };
   React.useEffect(() => {
@@ -115,13 +122,27 @@ function SkillMarks({
           gradesToGenerate[i][j][k] = Object.keys(category.scale.grades).map(
             mark => {
               let marked = false;
-              if (currentMarks && currentMarks.marks && currentMarks.marks[category.name] && currentMarks.marks[category.name].breakdown && currentMarks.marks[category.name].breakdown[generateMarksGrid[i].skill]) {
-                marked = (currentMarks.marks[category.name].breakdown[generateMarksGrid[i].skill] === mark) &&
-                  (semesterDetails.year - 1 === j) && (semesterDetails.slice - 1 === k);
+              if (
+                currentMarks &&
+                currentMarks.marks &&
+                currentMarks.marks[category.name] &&
+                currentMarks.marks[category.name].breakdown &&
+                currentMarks.marks[category.name].breakdown[
+                  generateMarksGrid[i].skill
+                ]
+              ) {
+                marked =
+                  currentMarks.marks[category.name].breakdown[
+                    generateMarksGrid[i].skill
+                  ] === mark &&
+                  semesterDetails.year - 1 === j &&
+                  semesterDetails.slice - 1 === k;
               }
               return {
                 mark,
-                  className: marked ? classes.selectedMark : classes.unselectedMark,
+                className: marked
+                  ? classes.selectedMark
+                  : classes.unselectedMark,
                 is_selected: marked,
                 ref: React.createRef(),
               };
@@ -162,7 +183,7 @@ function SkillMarks({
                   scope="col"
                   align="center"
                   className={semester.className}
-                  key={'xx' + index}
+                  key={`xx${index}`}
                 >
                   Trimester {index + 1}
                 </TableCell>
