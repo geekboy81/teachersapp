@@ -397,76 +397,13 @@ export function GroupDetails({
     setPreview({ open: true, data: {} });
   };
 
-  const handlePublishToAdmin = async () => {
-    const marks = groupDetails.marks[0] && groupDetails.marks[0].marks
-      ? groupDetails.marks[0].marks
-      : {};
-
-    const req = {
-      marks,
-      clazz_id: parseInt(moduleId),
-      child_id: parseInt(childId),
-      status: 3,
-      slice: groupDetails.studentSemesterDetails.slice,
-      year: groupDetails.studentSemesterDetails.year,
-    };
-    const updateMarkResp = await marksService.addUpdateMarks(req);
-    if (updateMarkResp.status === 'success') {
-      setErrorFeedback({
-        ...errorFeedback,
-        open: true,
-        message: 'Student marks has been published to the admin successfully !',
-      });
-    } else {
-      setErrorFeedback({
-        ...errorFeedback,
-        open: true,
-        message: updateMarkResp.message,
-      });
-    }
-  };
-
-  const handlePublishToParents = async () => {
-    const marks = groupDetails.marks[0] && groupDetails.marks[0].marks
-      ? groupDetails.marks[0].marks
-      : {};
-
-    const req = {
-      marks,
-      clazz_id: parseInt(moduleId),
-      child_id: parseInt(childId),
-      status: 4,
-      slice: groupDetails.studentSemesterDetails.slice,
-      year: groupDetails.studentSemesterDetails.year,
-    };
-    try {
-      const updateMarkResp = await marksService.addUpdateMarks(req);
-      if (updateMarkResp.status === 'success') {
-        setErrorFeedback({
-          ...errorFeedback,
-          open: true,
-          message:
-            'Student marks has been published to there parents successfully !',
-        });
-      } else {
-        throw new Error(updateMarkResp.message);
-      }
-    } catch (e) {
-      setErrorFeedback({
-        ...errorFeedback,
-        open: true,
-        message: e.message,
-      });
-    }
-  };
-
-  const handleDone = async () => {
+  const updateMarks = async (statusCode, message, shouldGoback) => {
     const promises = Object.values(allMarks).map(async (markInfo) => {
       const req = {
         marks: markInfo.marks,
         clazz_id: parseInt(moduleId, 10),
         child_id: parseInt(childId, 10),
-        status: 2,
+        status: statusCode,
         slice: markInfo.slice,
         year: markInfo.year,
       };
@@ -491,15 +428,41 @@ export function GroupDetails({
       setErrorFeedback({
         ...errorFeedback,
         open: true,
-        message: 'Student marks has been saved successfully !',
+        message,
       });
 
-      setTimeout(() => {
-        history.goBack();
-      }, 1500);
+      if (shouldGoback) {
+        setTimeout(() => {
+          history.goBack();
+        }, 1500);
+      }
     } else {
       // throw new Error('Error occured in fetching data');
     }
+  }
+
+  const handlePublishToAdmin = async () => {
+    await updateMarks(
+      3,
+      'Student marks has been published to the admin successfully !',
+      false,
+    );
+  };
+
+  const handlePublishToParents = async () => {
+    await updateMarks(
+      4,
+      'Student marks has been published to there parents successfully !',
+      false,
+    );
+  };
+
+  const handleDone = async () => {
+    await updateMarks(
+      2,
+      'Student marks has been saved successfully !',
+      true,
+    );
   };
 
   const renderLoading = () => (
