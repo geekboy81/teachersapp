@@ -358,11 +358,13 @@ export function GroupDetails({
     mark,
     year,
     slice,
+    selected,
   ) => {
     const category = values.categories[categoryIndex];
 
     const adjustedMarks = (allMarks[year * 100 + slice] || { marks: {}}).marks;
 
+    // NOTE: Refelct user's selection on marks
     if (!adjustedMarks[category.name]) {
       adjustedMarks[category.name] = {};
     }
@@ -373,7 +375,11 @@ export function GroupDetails({
       adjustedMarks[category.name].breakdown = {};
     }
 
-    adjustedMarks[category.name].breakdown[category.grid[gIndex].skill] = mark.mark;
+    if (selected) {
+      adjustedMarks[category.name].breakdown[category.grid[gIndex].skill] = mark.mark;
+    } else {
+      delete adjustedMarks[category.name].breakdown[category.grid[gIndex].skill];
+    }
 
     // New for multiple semesters 2019.7.21
     const marks = {
@@ -631,6 +637,7 @@ export function GroupDetails({
                             mark,
                             year,
                             slice,
+                            selected,
                           ) =>
                             handleChangeMark(
                               grades,
@@ -639,6 +646,7 @@ export function GroupDetails({
                               mark,
                               year,
                               slice,
+                              selected,
                             )
                           }
                           handleCommentChange={(category, comment) =>

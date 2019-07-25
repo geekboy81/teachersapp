@@ -93,12 +93,16 @@ function SkillMarks({
       i < grades[gridIndex][year.index][semester.index].length;
       i++
     ) {
-      grades[gridIndex][year.index][semester.index][i].is_selected = false;
-      grades[gridIndex][year.index][semester.index][i].className = classes.unselectedMark;
+      if (i !== grade.index) {
+        grades[gridIndex][year.index][semester.index][i].is_selected = false;
+        grades[gridIndex][year.index][semester.index][i].className = classes.unselectedMark;
+      }
     }
 
-    grades[gridIndex][year.index][semester.index][grade.index].is_selected = true;
-    grades[gridIndex][year.index][semester.index][grade.index].className = classes.selectedMark;
+    const isSelected = grades[gridIndex][year.index][semester.index][grade.index].is_selected;
+
+    grades[gridIndex][year.index][semester.index][grade.index].is_selected = isSelected ? false : true;
+    grades[gridIndex][year.index][semester.index][grade.index].className = isSelected ? classes.unselectedMark : classes.selectedMark;
     grades[gridIndex][year.index][semester.index][grade.index].skill = skill;
 
     setGrades([...grades]);
@@ -109,6 +113,7 @@ function SkillMarks({
       grades[gridIndex][year.index][semester.index][grade.index],
       year.index + 1,
       semester.index + 1,
+      !isSelected,
     );
   };
 
