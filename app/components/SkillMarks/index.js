@@ -24,6 +24,7 @@ const useStyles = makeStyles(theme => ({
   },
   unselectedMark: {},
 }));
+
 function SkillMarks({
   module,
   semesters,
@@ -37,13 +38,16 @@ function SkillMarks({
   currentMarks,
   semesterDetails,
   role,
+  groupDetails,
 }) {
   const classes = useStyles();
+
   const [markCoordinates, setMarkCoordinates] = React.useState([]);
   const [grades, setGrades] = React.useState([]);
   const [prGrid, setPrGrid] = React.useState([]);
   const [comment, setComment] = React.useState('');
   const [photos, setPhotos] = React.useState([]);
+
   const search = (key, value, inputArray) => {
     // eslint-disable-next-line no-plusplus
     for (let i = 0; i < inputArray.length; i++) {
@@ -52,14 +56,17 @@ function SkillMarks({
       }
     }
   };
+
   const onCommentChange = cmmt => {
     setComment(cmmt);
     handleCommentChange(category, cmmt);
   };
+
   const onPhotosChange = photoList => {
     setPhotos([...photoList]);
     handlePhotosChange(category, photos);
   };
+
   const handleChangeMark = (
     e,
     year,
@@ -72,6 +79,7 @@ function SkillMarks({
   ) => {
     e.preventDefault();
     e.stopPropagation();
+
     if (
       !semester.semester.is_current &&
       role !== 'admin' &&
@@ -79,21 +87,20 @@ function SkillMarks({
     ) {
       return;
     }
+
     for (
       let i = 0;
       i < grades[gridIndex][year.index][semester.index].length;
       i++
     ) {
       grades[gridIndex][year.index][semester.index][i].is_selected = false;
-      grades[gridIndex][year.index][semester.index][i].className =
-        classes.unselectedMark;
+      grades[gridIndex][year.index][semester.index][i].className = classes.unselectedMark;
     }
-    grades[gridIndex][year.index][semester.index][
-      grade.index
-    ].is_selected = true;
-    grades[gridIndex][year.index][semester.index][grade.index].className =
-      classes.selectedMark;
-    grades[gridIndex][year.index][semester.index][grade.index].skillg = skill;
+
+    grades[gridIndex][year.index][semester.index][grade.index].is_selected = true;
+    grades[gridIndex][year.index][semester.index][grade.index].className = classes.selectedMark;
+    grades[gridIndex][year.index][semester.index][grade.index].skill = skill;
+
     setGrades([...grades]);
 
     onHandleChangeMark(
@@ -104,12 +111,14 @@ function SkillMarks({
       semester.index + 1,
     );
   };
+
   React.useEffect(() => {
     // setGrades(studentGrades);
   }, [studentGrades]);
+
   React.useEffect(() => {
-    console.warn(currentMarks);
     const gradesToGenerate = [];
+
     for (let i = 0; i < generateMarksGrid.length; i++) {
       gradesToGenerate[i] = [];
       for (let j = 0; j < generateMarksGrid[i].years.length; j++) {
@@ -120,26 +129,11 @@ function SkillMarks({
           k++
         ) {
           gradesToGenerate[i][j][k] = Object.keys(category.scale.grades).map(
-            mark => {
-              let marked = false;
-              if (
-                currentMarks &&
-                currentMarks.marks &&
-                currentMarks.marks[category.name] &&
-                currentMarks.marks[category.name].breakdown &&
-                currentMarks.marks[category.name].breakdown[
-                  generateMarksGrid[i].skill
-                ]
-              ) {
-                marked =
-                  currentMarks.marks[category.name].breakdown[
-                    generateMarksGrid[i].skill
-                  ] === mark &&
-                  semesterDetails.year - 1 === j &&
-                  semesterDetails.slice - 1 === k;
-              }
+            gradeMark => {
+              const marked = gradeMark === generateMarksGrid[i].years[j].semesters[k].mark;
+
               return {
-                mark,
+                mark: gradeMark,
                 className: marked
                   ? classes.selectedMark
                   : classes.unselectedMark,
@@ -151,10 +145,14 @@ function SkillMarks({
         }
       }
     }
+
     setGrades(gradesToGenerate);
+
     handleOnStudentGradesChanged(gradesToGenerate);
-  }, [generateMarksGrid, currentMarks, semesterDetails]);
+  }, [generateMarksGrid, currentMarks, semesterDetails, groupDetails]);
+
   const generateGrades = semesterIndex => {};
+
   return (
     <div>
       <Table>
@@ -191,12 +189,15 @@ function SkillMarks({
             )}
           </TableRow>
         </TableHead>
+
         <TableBody>
           {generateMarksGrid.map((markGrid, gridIndex) => (
             <TableRow key={markGrid.skill}>
+
               <TableCell component="th" scope="row">
                 {markGrid.skill}
               </TableCell>
+
               {markGrid.years.map((year, topYearIndex) =>
                 year.semesters.map((yearSemesters, yearSemestersIndex) => (
                   <TableCell
@@ -293,6 +294,7 @@ SkillMarks.propTypes = {
   currentMarks: PropTypes.any,
   semesterDetails: PropTypes.any,
   role: PropTypes.any,
+  groupDetails: PropTypes.any,
 };
 
 export default SkillMarks;

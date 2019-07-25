@@ -120,16 +120,16 @@ function CategoryCommentAndPhotos({
         )}
         <Grid item md={12} className={classes.oldCommentsContainer}>
           <Grid container>
-            {currentMarks && currentMarks
-              .marks && currentMarks
-              .marks[category.name] && currentMarks
-              .marks[category.name]
-              .comments
-              .map(comment => (<Grid item md={12} key={comment} className={classes.oldComments}>
+            {currentMarks &&
+            currentMarks.marks &&
+            currentMarks.marks[category.name] &&
+            currentMarks.marks[category.name].comments.map(comment => (
+              <Grid item md={12} key={comment} className={classes.oldComments}>
                 <Typography>
                   {comment}
                 </Typography>
-              </Grid>))}
+              </Grid>
+            ))}
           </Grid>
         </Grid>
         <Grid item md={6}>

@@ -166,33 +166,75 @@ export function GroupDetails({
     onLoadChildMarks(moduleId, childId);
   }, [moduleId, childId]);
 
-  const { studentMarksDetails, studentSemesterDetails } = groupDetails;
-
   const handleOnStudentGradesChanged = grades => setStudentGrades(grades);
+
+  const getMark = (year, slice, category, skill) => {
+    const { marks } = groupDetails;
+
+    const markDetail = marks.find(info => (
+      info.year === year &&
+      info.slice === slice
+    ));
+
+    return (
+      markDetail &&
+      markDetail['marks'] &&
+      markDetail['marks'][category] &&
+      markDetail['marks'][category]['breakdown'] &&
+      markDetail['marks'][category]['breakdown'][skill]
+    );
+  }
+
+  const generateInitialMarks = () => {
+    const { marks } = groupDetails;
+
+    const generatedAllMarks = marks.reduce((result, markInfo) => (Object.assign(result, {
+      [markInfo.year * 100 + markInfo.slice]: {
+        year: markInfo.year,
+        slice: markInfo.slice,
+        marks: markInfo.marks,
+      }
+    })), {})
+
+
+    return generatedAllMarks;
+  }
 
   useEffect(() => {
     let semesters = [];
     const categories = [];
-    let isBreakDownHasSkills = false;
     const studentScales = [];
-    Object.values(
-      groupDetails.studentMarksDetails.module.course_breakdown,
-    ).forEach((v) => {
-      if (Object.values(v.breakdown).length > 0) {
-        isBreakDownHasSkills = true;
-      }
-    });
+
+    const {
+      studentMarksDetails,
+      studentSemesterDetails,
+    } = groupDetails;
+
+    const allYears = studentMarksDetails.module.years;
+    const allSlices = studentMarksDetails.module.slices;
+
+    const currentYear = studentSemesterDetails.year;
+    const currentSlice = studentSemesterDetails.slice;
+
+    const isBreakDownHasSkills = Object.values(
+      studentMarksDetails.module.course_breakdown,
+    ).some(v => Object.values(v.breakdown).length > 0);
+
+    const allMarks = generateInitialMarks();
+    setAllMarks(allMarks);
+
     if (
       isBreakDownHasSkills &&
-      groupDetails.studentMarksDetails.module.course_breakdown
+      studentMarksDetails.module.course_breakdown
     ) {
-      semesters = Array.from({ length: studentMarksDetails.module.years }).map(
+      semesters = Array.from({ length: allYears }).map(
         (year, yearIndex) =>
-          Array.from({ length: studentMarksDetails.module.slices }).map(
+          Array.from({ length: allSlices }).map(
             (_, index) => {
               const isCurrent =
-                yearIndex === parseInt(studentSemesterDetails.year, 10) - 1 &&
-                index === parseInt(studentSemesterDetails.slice, 10) - 1;
+                yearIndex === parseInt(currentYear, 10) - 1 &&
+                index === parseInt(currentSlice, 10) - 1;
+
               return {
                 isCurrent,
                 className: isCurrent
@@ -207,37 +249,48 @@ export function GroupDetails({
       );
 
       // eslint-disable-next-line camelcase
-      const { course_breakdown } = groupDetails.studentMarksDetails.module;
+      const { course_breakdown } = studentMarksDetails.module;
 
       // eslint-disable-next-line camelcase
       if (course_breakdown) {
-        Object.entries(course_breakdown).map(([key, value]) => {
+        Object.entries(course_breakdown).map(([categoryName, value]) => {
           let scale = { grades: [] };
           scale = search(
             'id',
             value.scale_id,
-            groupDetails.studentMarksDetails.scales,
+            studentMarksDetails.scales,
           );
+
           if (!search('id', scale.id, studentScales)) {
             studentScales.push(scale);
           }
+
           const category = {
-            name: key,
+            name: categoryName,
             skills: [],
             scale,
             scale_id: value.scale_id,
           };
+
           category.skills = Object.keys(value.breakdown);
           category.grid = category.skills.map((skill) => {
             const g1 = Object.keys(scale.grades).map(mark => ({
               mark,
               is_selected: false,
             }));
+
             return {
               skill,
               years: semesters.map((semestersOfYears, yearIndex) => ({
                 yearIndex,
-                semesters: semestersOfYears.map(s => s),
+                semesters: semestersOfYears.map((s, sliceIndex) => ({
+                  ...s,
+                  category: categoryName,
+                  skill,
+                  mark: getMark(yearIndex + 1, sliceIndex + 1, categoryName, skill),
+                  year: yearIndex + 1,
+                  slice: sliceIndex + 1,
+                })),
                 ref: React.createRef(),
               })),
             };
@@ -254,10 +307,11 @@ export function GroupDetails({
         categories,
         studentScales,
       });
+
       setNoMarksMode(false);
     } else {
       // eslint-disable-next-line camelcase
-      const { course_breakdown } = groupDetails.studentMarksDetails.module;
+      const { course_breakdown } = studentMarksDetails.module;
       let categoriesListTemp = [];
       // eslint-disable-next-line camelcase
       if (course_breakdown) {
@@ -292,9 +346,7 @@ export function GroupDetails({
     if (!finalMarks[category.name]) {
       finalMarks[category.name] = {};
     }
-    // if (finalMarks[category.name].comment) {
-    //   finalMarks[category.name].comment = [];
-    // }
+
     finalMarks[category.name].comment = comment;
     setFinalMarks({ ...finalMarks });
   };
@@ -309,22 +361,26 @@ export function GroupDetails({
   ) => {
     const category = values.categories[categoryIndex];
 
-    if (!finalMarks[category.name]) {
-      finalMarks[category.name] = {};
+    const adjustedMarks = (allMarks[year * 100 + slice] || { marks: {}}).marks;
+
+    if (!adjustedMarks[category.name]) {
+      adjustedMarks[category.name] = {};
     }
-    finalMarks[category.name].scale_id = category.scale_id;
-    if (!finalMarks[category.name].breakdown) {
-      finalMarks[category.name].breakdown = {};
+
+    adjustedMarks[category.name].scale_id = category.scale_id;
+
+    if (!adjustedMarks[category.name].breakdown) {
+      adjustedMarks[category.name].breakdown = {};
     }
-    finalMarks[category.name].breakdown[category.grid[gIndex].skill] =
-      mark.mark;
+
+    adjustedMarks[category.name].breakdown[category.grid[gIndex].skill] = mark.mark;
 
     // New for multiple semesters 2019.7.21
     const marks = {
       [year * 100 + slice]: {
         year,
         slice,
-        marks: { ...finalMarks },
+        marks: adjustedMarks,
       },
     };
 
@@ -411,8 +467,6 @@ export function GroupDetails({
         clazz_id: parseInt(moduleId, 10),
         child_id: parseInt(childId, 10),
         status: 2,
-        // slice: groupDetails.studentSemesterDetails.slice,
-        // year: groupDetails.studentSemesterDetails.year,
         slice: markInfo.slice,
         year: markInfo.year,
       };
@@ -431,8 +485,6 @@ export function GroupDetails({
       return null;
     });
 
-    console.log('allMarks', allMarks);
-
     const result = await Promise.all(promises);
 
     if (result.every(item => item && item.status === 'success')) {
@@ -441,40 +493,13 @@ export function GroupDetails({
         open: true,
         message: 'Student marks has been saved successfully !',
       });
-      // setTimeout(() => {
-      //   history.goBack();
-      // }, 1500);
+
+      setTimeout(() => {
+        history.goBack();
+      }, 1500);
     } else {
       // throw new Error('Error occured in fetching data');
     }
-
-    // const req = {
-    //   marks: finalMarks,
-    //   clazz_id: parseInt(moduleId),
-    //   child_id: parseInt(childId),
-    //   status: 2,
-    //   slice: groupDetails.studentSemesterDetails.slice,
-    //   year: groupDetails.studentSemesterDetails.year,
-    // };
-
-    // try {
-    //   const updateMarkResp = await marksService.addUpdateMarks(req);
-    //   if (updateMarkResp.status === 'success') {
-    //     setErrorFeedback({
-    //       ...errorFeedback,
-    //       open: true,
-    //       message: 'Student marks has been saved successfully !',
-    //     });
-    //   } else {
-    //     throw new Error(updateMarkResp.message);
-    //   }
-    // } catch (e) {
-    //   setErrorFeedback({
-    //     ...errorFeedback,
-    //     open: true,
-    //     message: e.message,
-    //   });
-    // }
   };
 
   const renderLoading = () => (
