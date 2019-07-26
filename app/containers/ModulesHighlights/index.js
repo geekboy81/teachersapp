@@ -36,7 +36,9 @@ const useStyles = makeStyles(theme => ({
     marginBottom: theme.spacing(6),
     marginTop: theme.spacing(6),
     marginLeft: theme.spacing(3),
-    fontSize: '28px',
+    [theme.breakpoints.up('sm')]: {
+      display: 'block',
+    },
   },
   item: {
     marginLeft: theme.spacing(3),

@@ -71,22 +71,27 @@ function SideBar({
     {
       icon: SortIcon,
       label: 'Sort',
+      link: '',
     },
     {
       icon: MailIcon,
       label: 'Message',
+      link: '',
     },
     {
       icon: WorkIcon,
       label: 'Work',
+      link: '',
     },
     {
       icon: CalendarIcon,
       label: 'Calendar',
+      link: '',
     },
     {
       icon: SchoolIcon,
       label: 'School',
+      link: '',
     },
     {
       icon: ShowChartIcon,

@@ -6,13 +6,20 @@
 
 import React, { Fragment } from 'react';
 import { Button, Card, makeStyles, withStyles } from '@material-ui/core';
+import CardActions from '@material-ui/core/CardActions';
+import CardContent from '@material-ui/core/CardContent';
+
 import Typography from '@material-ui/core/Typography';
 import * as PropTypes from 'prop-types';
+
+import IconButton from '@material-ui/core/IconButton';
+
 import AddIcon from '@material-ui/icons/Add';
 import ArrowDownIcon from '@material-ui/icons/KeyboardArrowDown';
 import RemoveIcon from '@material-ui/icons/Delete';
 import CopyIcon from '@material-ui/icons/FileCopy';
 import EditIcon from '@material-ui/icons/Edit';
+
 import Grid from '@material-ui/core/Grid';
 import Avatar from '@material-ui/core/Avatar';
 import LinearProgress from '@material-ui/core/LinearProgress';
@@ -49,7 +56,7 @@ const useStyles = makeStyles(theme => ({
     marginLeft: -12,
   },
   subTitle1: {
-    fontSize: '24px',
+    fontSize: '1.4rem',
   },
   addIcon: {
     marginBottom: theme.spacing(1),
@@ -67,13 +74,13 @@ const useStyles = makeStyles(theme => ({
     minHeight: cardHeight,
     width: cardWidth,
     cursor: 'pointer',
-    borderRadius: '25px',
+    borderRadius: '10px',
   },
   card: {
     display: 'flex',
     minHeight: cardHeight,
     width: cardWidth,
-    borderRadius: '25px',
+    borderRadius: '10px',
     paddingBottom: '12px',
     paddingTop: '12px',
   },
@@ -87,7 +94,7 @@ const useStyles = makeStyles(theme => ({
   },
   cardHeader: {
     width: '100%',
-    padding: theme.spacing(2),
+    padding: theme.spacing(1),
   },
   avatar: {
     marginLeft: theme.spacing(1),
@@ -123,14 +130,20 @@ const useStyles = makeStyles(theme => ({
     fontSize: '14px',
   },
   subContainer: {
-    paddingLeft: theme.spacing(1),
+    paddingLeft: theme.spacing(2),
+    paddingRight: theme.spacing(1),
+  },
+  markingStatus: {
+    paddingLeft: theme.spacing(2),
+    paddingBottom: theme.spacing(1),
+    paddingTop: theme.spacing(1),
   },
   subCotnainerTitle: {
     color: '#C4C4C4',
     fontSize: '14px',
   },
   subCotnainerContent: {
-    fontSize: '18px',
+    fontSize: '0.95rem',
   },
   t2: {
     paddingTop: theme.spacing(0.5),
@@ -160,7 +173,8 @@ const useStyles = makeStyles(theme => ({
     textTransform: 'capitalize',
   },
   icon: {
-    color: '#CECECE',
+    // color: '#CECECE',
+    color: 'silver',
   },
 }));
 const ColorLinearProgress = withStyles({
@@ -231,7 +245,7 @@ function ModuleCard(props) {
             <AddIcon className={classes.addIcon} />
           </Grid>
           <Grid item>
-            <Typography className={classes.addTitle} variant="h6">
+            <Typography className={classes.subTitle1}>
               Add Module
             </Typography>
           </Grid>
@@ -249,22 +263,28 @@ function ModuleCard(props) {
             alignItems="flex-start"
           >
             <Grid item>
-              <CopyIcon
-                className={classes.icon}
-                onClick={handleOpenCloneModuleDialog}
-              />
+              <IconButton color="inherit" size="small">
+                <CopyIcon
+                  className={classes.icon}
+                  onClick={handleOpenCloneModuleDialog}
+                />
+              </IconButton>
             </Grid>
             <Grid item>
-              <EditIcon className={classes.icon} onClick={onEditModule} />
+              <IconButton color="inherit" size="small">
+                <EditIcon className={classes.icon} onClick={onEditModule} />
+              </IconButton>
             </Grid>
             <Grid item>
-              <RemoveIcon className={classes.icon} onClick={onDeleteModule} />
+              <IconButton color="inherit" size="small">
+                <RemoveIcon className={classes.icon} onClick={onDeleteModule} />
+              </IconButton>
             </Grid>
           </Grid>
           }
           <Grid container justify="center" className={classes.cardTitle}>
             <Grid item>
-              <Typography variant="h6" className={classes.subTitle1}>
+              <Typography className={classes.subTitle1}>
                 {props.title}
               </Typography>
             </Grid>
@@ -283,7 +303,7 @@ function ModuleCard(props) {
             })}
           </Grid>
 
-          <Grid container className={classes.subContainer}>
+          <Grid container className={classes.markingStatus}>
             <Grid item className={classes.subCotnainerTitle}>
               <Typography className={classes.subCotnainerTitle}>
                 Marking Status
@@ -303,7 +323,7 @@ function ModuleCard(props) {
                 >
                   <Grid item className={classes.t2}>
                     <Typography
-                      variant="caption"
+                      variant="h7"
                       className={classes.subCotnainerContent}
                     >
                       {childObj.name}
@@ -352,17 +372,20 @@ function ModuleCard(props) {
               <div key={index} />
             );
           })}
-          <Grid container justify="flex-end" className={classes.actions}>
-            <Grid item>
-              <Button
-                onClick={handleDisplayGroupDetails}
-                color="primary"
-                className={classes.btn}
-              >
-                View All
-              </Button>
+
+          <CardActions>
+            <Grid container justify="flex-end" className={classes.actions}>
+              <Grid item>
+                <Button
+                  onClick={handleDisplayGroupDetails}
+                  color="primary"
+                  className={classes.btn}
+                >
+                  View All
+                </Button>
+              </Grid>
             </Grid>
-          </Grid>
+          </CardActions>
         </Grid>
       </Card>
     );
