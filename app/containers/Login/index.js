@@ -190,8 +190,15 @@ export function Login(props) {
             </Button>
           </CardActions>
         </form>
-        <div>
-          <Button className="btn btn-link" onClick={handleClickOpenModel}>
+        <div className={classes.form}>
+          <Button
+            variant="raised"
+            type="submit"
+            color="primary"
+            className={classes.button}
+            fullWidth
+            onClick={handleClickOpenModel}
+          >
             Forget Password
           </Button>
         </div>
