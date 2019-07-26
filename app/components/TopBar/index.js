@@ -1,5 +1,6 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import clsx from 'clsx';
 
 import { makeStyles } from '@material-ui/core/styles';
 import AppBar from '@material-ui/core/AppBar';
@@ -19,7 +20,24 @@ import NotificationsIcon from '@material-ui/icons/Notifications';
 import MoreIcon from '@material-ui/icons/MoreVert';
 
 
+const drawerWidth = 240;
+
 const useStyles = makeStyles(theme => ({
+  appBar: {
+    zIndex: theme.zIndex.drawer + 1,
+    transition: theme.transitions.create(['width', 'margin'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.leavingScreen,
+    }),
+  },
+  appBarShift: {
+    marginLeft: drawerWidth,
+    width: `calc(100% - ${drawerWidth}px)`,
+    transition: theme.transitions.create(['width', 'margin'], {
+      easing: theme.transitions.easing.sharp,
+      duration: theme.transitions.duration.enteringScreen,
+    }),
+  },
   grow: {
     flexGrow: 1,
   },
@@ -84,7 +102,11 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-function TopBar({ onLogout }) {
+function TopBar({
+  open,
+  onLogout,
+  handleDrawerOpen,
+}) {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [mobileMoreAnchorEl, setMobileMoreAnchorEl] = React.useState(null);
@@ -170,67 +192,75 @@ function TopBar({ onLogout }) {
   );
 
   return (
-    <div className={classes.grow}>
-      <AppBar position="static">
-        <Toolbar>
-          <IconButton
-            edge="start"
-            className={classes.menuButton}
-            color="inherit"
-            aria-label="Open drawer"
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography className={classes.title} variant="h6" noWrap>
-            Welcome  <span className={classes.boldTitle}>Alicia</span>
-          </Typography>
+    <AppBar
+      position="fixed"
+      className={clsx(classes.appBar, {
+        [classes.appBarShift]: open,
+      })}
+    >
+      <Toolbar>
+        <IconButton
+          edge="start"
+          color="inherit"
+          aria-label="Open drawer"
+          onClick={handleDrawerOpen}
+          className={clsx(classes.menuButton, {
+            [classes.hide]: open,
+          })}
+        >
+          <MenuIcon />
+        </IconButton>
+        <Typography className={classes.title} variant="h6" noWrap>
+          Welcome  <span className={classes.boldTitle}>Alicia</span>
+        </Typography>
 
-          <div className={classes.grow} />
-          <div className={classes.sectionDesktop}>
-            <IconButton aria-label="Show 4 new mails" color="inherit">
+        <div className={classes.grow} />
+        <div className={classes.sectionDesktop}>
+          <IconButton aria-label="Show 4 new mails" color="inherit">
+            <MailIcon />
+            {/* <Badge badgeContent={4} color="secondary">
               <MailIcon />
-              {/* <Badge badgeContent={4} color="secondary">
-                <MailIcon />
-              </Badge> */}
-            </IconButton>
-            <IconButton aria-label="Show 17 new notifications" color="inherit">
+            </Badge> */}
+          </IconButton>
+          <IconButton aria-label="Show 17 new notifications" color="inherit">
+            <NotificationsIcon />
+            {/* <Badge badgeContent={17} color="secondary">
               <NotificationsIcon />
-              {/* <Badge badgeContent={17} color="secondary">
-                <NotificationsIcon />
-              </Badge> */}
-            </IconButton>
-            <IconButton
-              edge="end"
-              aria-label="Account of current user"
-              aria-controls={menuId}
-              aria-haspopup="true"
-              onClick={handleProfileMenuOpen}
-              color="inherit"
-            >
-              <AccountCircle />
-            </IconButton>
-          </div>
-          <div className={classes.sectionMobile}>
-            <IconButton
-              aria-label="Show more"
-              aria-controls={mobileMenuId}
-              aria-haspopup="true"
-              onClick={handleMobileMenuOpen}
-              color="inherit"
-            >
-              <MoreIcon />
-            </IconButton>
-          </div>
-        </Toolbar>
-      </AppBar>
+            </Badge> */}
+          </IconButton>
+          <IconButton
+            edge="end"
+            aria-label="Account of current user"
+            aria-controls={menuId}
+            aria-haspopup="true"
+            onClick={handleProfileMenuOpen}
+            color="inherit"
+          >
+            <AccountCircle />
+          </IconButton>
+        </div>
+        <div className={classes.sectionMobile}>
+          <IconButton
+            aria-label="Show more"
+            aria-controls={mobileMenuId}
+            aria-haspopup="true"
+            onClick={handleMobileMenuOpen}
+            color="inherit"
+          >
+            <MoreIcon />
+          </IconButton>
+        </div>
+      </Toolbar>
       {renderMobileMenu}
       {renderMenu}
-    </div>
+    </AppBar>
   );
 }
 
 TopBar.propTypes = {
   onLogout: PropTypes.func,
+  open: PropTypes.bool,
+  handleDrawerOpen: PropTypes.func,
 };
 
 export default TopBar;
