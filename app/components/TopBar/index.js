@@ -120,12 +120,10 @@ function TopBar({
 
   function handleMobileMenuClose() {
     setMobileMoreAnchorEl(null);
-    onLogout();
   }
 
   function handleMenuClose() {
     setAnchorEl(null);
-    handleMobileMenuClose();
   }
 
   function handleMobileMenuOpen(event) {
@@ -143,7 +141,7 @@ function TopBar({
       open={isMenuOpen}
       onClose={handleMenuClose}
     >
-      <MenuItem onClick={handleMenuClose}>Log Out</MenuItem>
+      <MenuItem onClick={onLogout}>Log Out</MenuItem>
       {/* <MenuItem onClick={handleMenuClose}>My account</MenuItem> */}
     </Menu>
   );
