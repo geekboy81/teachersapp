@@ -35,7 +35,15 @@ import Select from '@material-ui/core/Select';
 import FilledInput from '@material-ui/core/FilledInput';
 import MenuItem from '@material-ui/core/MenuItem';
 import Radio from '@material-ui/core/Radio';
+import TableHead from '@material-ui/core/TableHead';
+import TableRow from '@material-ui/core/TableRow';
+import TableCell from '@material-ui/core/TableCell';
+import TableBody from '@material-ui/core/TableBody';
+import Table from '@material-ui/core/Table';
 import * as axios from 'axios';
+
+import { SEMESTER_STATUS, getSemesterStatus } from 'shared/semester';
+
 import makeSelectGroupStudents from './selectors';
 import reducer from './reducer';
 import saga from './saga';
@@ -109,13 +117,26 @@ const useStyles = makeStyles(theme => ({
   progressText: {
     paddingLeft: theme.spacing(1),
   },
-  customProgress: {},
+	customProgress: {},
+	childAvatar: {
+		display: 'flex',
+		justifyContent: 'space-between',
+		alignItems: 'center',
+		border: 'none',
+	},
+	tableCell: {
+		border: 'none',
+	},
+	semesterStatus: {
+		fontSize: '0.8rem',
+	}
 }));
 
 export function GroupStudents(props) {
   useInjectReducer({ key: 'groupStudents', reducer });
   useInjectSaga({ key: 'groupStudents', saga });
   const classes = useStyles();
+
   const [values, setValues] = React.useState({
     search: '',
     markFilter: '',
@@ -126,26 +147,156 @@ export function GroupStudents(props) {
       module: '',
     },
   });
+
   const { moduleId } = props.match.params;
+
   useEffect(() => {
     async function fetchModuleDetails() {
       const module = await moduleService.getModuleById(moduleId);
       return module;
     }
+
     fetchModuleDetails().then(resp => {
       const m = resp.message;
+
       const sGroup = Object.values(m.groups).filter(
         group =>
           group.name.toLowerCase() ===
           props.match.params.groupName.toLowerCase(),
       )[0];
+
       setValues({ ...values, module: m, selectedGroup: sGroup });
     });
   }, [moduleId]);
+
   const handleGoToStudentDetails = (id, ss) => {
     const studentName = `${ss.firstname} ${ss.lastname}`;
     props.history.push(`/groups/details/${moduleId}/${id}/${studentName}`);
   };
+
+	const renderSemesters = () => (
+		<TableHead>
+			<TableRow>
+				<TableCell className={classes.tableCell} />
+
+				{Array.from({
+					length: values.module.years,
+				}).map((yearIndex, index) => (
+					<TableCell
+						align="center"
+						key={index + 1}
+						scope="colgroup"
+						colSpan={values.module.slices}
+						className={classes.tableCell}
+					>
+						Year {index + 1}
+					</TableCell>
+				))}
+			</TableRow>
+
+			<TableRow>
+				<TableCell className={classes.tableCell} />
+				{
+					Array.from({
+						length: values.module.years * values.module.slices,
+					}).map((_, index) => (
+						<TableCell
+							scope="col"
+							align="center"
+							key={`xx${index}`}
+							className={classes.tableCell}
+						>
+							Trimester {index % values.module.slices + 1}
+						</TableCell>
+					))
+				}
+			</TableRow>
+		</TableHead>
+	)
+
+	const renderSemesterStatus = (childId) => {
+		const { module } = values;
+
+		console.log('module', module);
+
+		return (
+			Array.from({
+				length: values.module.years * values.module.slices,
+			}).map((_, index) => (
+				<TableCell
+					scope="col"
+					align="center"
+					key={`xx${index}`}
+					className={classes.tableCell}
+				>
+					<Typography	className={classes.semesterStatus}>
+						{
+							getSemesterStatus(
+								module,
+								childId,
+								Math.floor((index + 1) / values.module.slices) + 1,
+								index % values.module.slices + 1,
+							) === SEMESTER_STATUS.ready
+								? ''
+								: getSemesterStatus(
+									module,
+									childId,
+									Math.floor((index + 1) / values.module.slices) + 1,
+									index % values.module.slices + 1,
+								)
+						}
+					</Typography>
+				</TableCell>
+			))
+		);
+	}
+
+	const renderChilds = () => {
+		return (
+			<TableBody>
+				{
+					values.module.groups &&
+					Object.values(values.module.groups)
+						.filter(g =>
+							g.name
+								.toLowerCase()
+								.includes(values.selectedGroup.name.toLowerCase()),
+						)
+						.map(group =>
+							Object.values(group.childids)
+								.filter(
+									s =>
+										(s.firstname
+											.toLowerCase()
+											.includes(values.search.toLowerCase()) ||
+											s.lastname
+												.toLowerCase()
+												.includes(values.search.toLowerCase())) &&
+										s.status
+											.toLowerCase()
+											.includes(values.markFilter.toLowerCase()),
+								)
+								.map(student => (
+									<TableRow
+										onClick={() =>
+											handleGoToStudentDetails(student.childid, student)
+										}
+									>
+										<TableCell scope="colgroup" colSpan={2} className={classes.childAvatar}>
+											<Avatar>{student.firstname.substring(0, 1)}</Avatar>
+											<Typography variant="subtitle1">
+												{`${student.firstname} ${student.lastname}`}
+											</Typography>
+										</TableCell>
+
+										{renderSemesterStatus(student.childid)}
+									</TableRow>
+								)))
+				}
+			</TableBody>
+		);
+	}
+
   return (
     <div>
       <Typography variant="h5" className={classes.title}>
@@ -232,27 +383,27 @@ export function GroupStudents(props) {
             </Grid>
             <Grid item md={3}>
               <GreenRadio
-                checked={values.markFilter === 'MARKED'}
-                value="MARKED"
+                checked={values.markFilter === 'In Progress'}
+                value="In Progress"
                 name="radio-button-demo"
                 onChange={e =>
                   setValues({ ...values, markFilter: e.target.value })
                 }
                 inputProps={{ 'aria-label': 'E' }}
               />
-              Marked
+              In Progress
             </Grid>
             <Grid item md={3}>
               <GreenRadio
-                checked={values.markFilter === 'UNMARKED'}
-                value="UNMARKED"
+                checked={values.markFilter === 'Complete'}
+                value="Complete"
                 onChange={e =>
                   setValues({ ...values, markFilter: e.target.value })
                 }
                 name="radio-button-demo"
                 inputProps={{ 'aria-label': 'E' }}
               />
-              Unmarked
+              Complete
             </Grid>
           </Grid>
         </Grid>
@@ -299,63 +450,15 @@ export function GroupStudents(props) {
             </Grid>
           </Grid>
         </Grid>
+
         <Grid item className={classes.item} md={12}>
-          <Card>
-            <List className={classes.innerCard}>
-              {values.module.groups &&
-                Object.values(values.module.groups)
-                  .filter(g =>
-                    g.name
-                      .toLowerCase()
-                      .includes(values.selectedGroup.name.toLowerCase()),
-                  )
-                  .map(group =>
-                    Object.values(group.childids)
-                      .filter(
-                        s =>
-                          (s.firstname
-                            .toLowerCase()
-                            .includes(values.search.toLowerCase()) ||
-                            s.lastname
-                              .toLowerCase()
-                              .includes(values.search.toLowerCase())) &&
-                          s.status
-                            .toLowerCase()
-                            .includes(values.markFilter.toLowerCase()),
-                      )
-                      .map(student => (
-                        <ListItem
-                          component="li"
-                          key={student.childid}
-                          onClick={() =>
-                            handleGoToStudentDetails(student.childid, student)
-                          }
-                        >
-                          <ListItemAvatar>
-                            <Avatar>{student.firstname.substring(0, 1)}</Avatar>
-                          </ListItemAvatar>
-                          <ListItemText>
-                            <Grid container>
-                              <Grid item md={1}>
-                                <Typography variant="subtitle1">
-                                  {`${student.firstname} ${student.lastname}`}
-                                </Typography>
-                              </Grid>
-                              <Grid item md={1}>
-                                <Typography variant="subtitle2" color="error">
-                                  {student.status === 'Not Found'
-                                    ? 'pending'
-                                    : student.status}
-                                </Typography>
-                              </Grid>
-                            </Grid>
-                          </ListItemText>
-                          <Divider />
-                        </ListItem>
-                      )),
-                  )}
-            </List>
-          </Card>
+					<Card>
+						<Table className={classes.innerCard}>
+							{renderSemesters()}
+							{renderChilds()}
+						</Table>
+					</Card>
+
         </Grid>
       </Grid>
     </div>

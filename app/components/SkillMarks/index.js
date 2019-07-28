@@ -16,6 +16,8 @@ import * as PropTypes from 'prop-types';
 import color from '@material-ui/core/colors/indigo';
 import CategoryCommentAndPhotos from '../CategoryCommentAndPhotos';
 
+import { SEMESTER_STATUS, getSemesterStatus } from 'shared/semester';
+
 // import PropTypes from 'prop-types';
 // import styled from 'styled-components';
 const useStyles = makeStyles(theme => ({
@@ -39,6 +41,7 @@ function SkillMarks({
   semesterDetails,
   role,
   groupDetails,
+  childId,
 }) {
   const classes = useStyles();
 
@@ -80,10 +83,25 @@ function SkillMarks({
     e.preventDefault();
     e.stopPropagation();
 
+    const currentYear = year.index + 1;
+    const currentSemester = semester.index + 1;
+
+    const semesterStatus = getSemesterStatus(
+      module,
+      childId,
+      currentYear,
+      currentSemester,
+    );
+    console.log('semesterStatus', semesterStatus);
+
+
     if (
-      !semester.semester.is_current &&
-      role !== 'admin' &&
-      !module.teacher_override
+      semesterStatus == SEMESTER_STATUS.complete ||
+      (
+        !semester.semester.is_current &&
+        role !== 'admin' &&
+        !module.teacher_override
+      )
     ) {
       return;
     }
@@ -123,6 +141,8 @@ function SkillMarks({
 
   React.useEffect(() => {
     const gradesToGenerate = [];
+
+    console.log('generateMarksGrid', generateMarksGrid);
 
     for (let i = 0; i < generateMarksGrid.length; i++) {
       gradesToGenerate[i] = [];
@@ -300,6 +320,7 @@ SkillMarks.propTypes = {
   semesterDetails: PropTypes.any,
   role: PropTypes.any,
   groupDetails: PropTypes.any,
+  childId: PropTypes.number,
 };
 
 export default SkillMarks;

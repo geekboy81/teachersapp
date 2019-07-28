@@ -47,6 +47,11 @@ import makeSelectGroupDetails, {
   makeModuleSkillsMarks,
 } from './selectors';
 
+import SemesterSelection from '../../components/SemesterSelection';
+
+import { SEMESTER_STATUS, getSemesterStatus } from 'shared/semester';
+
+
 const useStyles = makeStyles(theme => ({
   root: {
     display: 'flex',
@@ -104,7 +109,24 @@ const useStyles = makeStyles(theme => ({
     backgroundColor: greyPurple[200],
   },
   notCurrentSemesterContainer: {},
+  optionButtons: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    padding: '1rem 1rem 0 2rem',
+    borderTop: '1px solid lightgrey',
+  },
+  optionGroup: {
+    display: 'flex',
+  },
+  optionButton: {
+    marginRight: '0.5rem',
+  },
+  compelteHeader: {
+    color: 'white',
+    backgroundColor: 'darkgrey',
+  },
 }));
+
 
 export function GroupDetails({
   match,
@@ -133,6 +155,9 @@ export function GroupDetails({
     open: false,
     message: '',
   });
+
+  const [sliceSelDlg, setSliceSelDlg] = React.useState(false);
+  const [selectedSlices, setSelectedSlices] = React.useState([]);
 
   const [values, setValues] = React.useState({
     categories: [],
@@ -235,11 +260,27 @@ export function GroupDetails({
                 yearIndex === parseInt(currentYear, 10) - 1 &&
                 index === parseInt(currentSlice, 10) - 1;
 
+              const currentSemesterStatus = getSemesterStatus(
+                groupDetails.studentMarksDetails.module,
+                childId,
+                yearIndex+1,
+                index+1,
+              );
+
+              let className = classes.notCurrentSemesterHeader;
+              if (isCurrent) {
+                className = classes.currentSemesterHeader;
+              } else if (currentSemesterStatus == SEMESTER_STATUS.complete) {
+                className = classes.compelteHeader;
+              } else if (
+                currentSemesterStatus == SEMESTER_STATUS.progress
+              ) {
+                className = classes.notCurrentSemesterHeader;
+              }
+
               return {
                 isCurrent,
-                className: isCurrent
-                  ? classes.currentSemesterHeader
-                  : classes.notCurrentSemesterHeader,
+                className,
                 marksClassName: isCurrent
                   ? classes.currentSemesterContainer
                   : classes.notCurrentSemesterContainer,
@@ -247,6 +288,8 @@ export function GroupDetails({
             },
           ),
       );
+
+      console.log('semesters', semesters);
 
       // eslint-disable-next-line camelcase
       const { course_breakdown } = studentMarksDetails.module;
@@ -300,6 +343,9 @@ export function GroupDetails({
       }
       // --------------------------
       // --------------------------
+
+      console.log('groupdetails', groupDetails);
+      console.log('semesters', semesters);
 
       setValues({
         ...values,
@@ -465,11 +511,15 @@ export function GroupDetails({
 
   const handleDone = async () => {
     await updateMarks(
-      2,
+      1,
       'Student marks has been saved successfully !',
       true,
     );
   };
+
+  const handleRevert = () => {
+    setSliceSelDlg(true);
+  }
 
   const renderLoading = () => (
     <Grid container justify="center" alignItems="center">
@@ -536,40 +586,57 @@ export function GroupDetails({
   );
 
   const renderOperationBtns = () => (
-    <Grid container justify="flex-end">
-      <Grid item style={{ marginRight: '5px' }}>
-        <Button onClick={handleBack}>Back</Button>
-      </Grid>
-      <Grid item style={{ marginRight: '5px' }}>
-        <Button color="primary" onClick={handlePreview} variant="contained">
-          Preview
-        </Button>
-      </Grid>
-      <Grid item style={{ marginRight: '5px' }}>
-        <Button color="primary" onClick={handleDone} variant="contained">
-          Save
-        </Button>
-      </Grid>
-      <Grid item>
-        {role === 'admin' ? (
-          <Button
-            color="primary"
-            variant="contained"
-            onClick={handlePublishToParents}
-          >
-            Publish to Parents
+    <div className={classes.optionButtons}>
+      <div className={classes.optionGroup}>
+        <div className={classes.optionButton}>
+          <Button onClick={handleBack}>Back</Button>
+        </div>
+        <div className={classes.optionButton}>
+          <Button color="primary" onClick={handlePreview} variant="contained">
+            Preview
           </Button>
-        ) : (
-          <Button
-            color="primary"
-            variant="contained"
-            onClick={handlePublishToAdmin}
-          >
-            Publish to admin
+        </div>
+        <div className={classes.optionButton}>
+          {role === 'admin' && (
+            <Button color="secondary" variant="contained" onClick={handleRevert}>
+              Revert
+            </Button>
+          )}
+        </div>
+      </div>
+      <div className={classes.optionGroup}>
+        <div className={classes.optionButton}>
+          <Button color="primary" onClick={handleDone} variant="contained">
+            Save
           </Button>
-        )}
-      </Grid>
-    </Grid>
+        </div>
+        <div className={classes.optionButton}>
+          <Button color="primary" variant="contained">
+            Complete
+          </Button>
+        </div>
+
+        {/* <div className={classes.optionButton}>
+          {role === 'admin' ? (
+            <Button
+              color="primary"
+              variant="contained"
+              onClick={handlePublishToParents}
+            >
+              Publish to Parents
+            </Button>
+          ) : (
+            <Button
+              color="primary"
+              variant="contained"
+              onClick={handlePublishToAdmin}
+            >
+              Publish to admin
+            </Button>
+          )}
+        </div> */}
+      </div>
+    </div>
   );
 
   const renderMainContent = () =>
@@ -613,7 +680,7 @@ export function GroupDetails({
 
                   <Box
                     boxShadow={2}
-                    borderRadius={15}
+                    borderRadius={5}
                     style={{ marginLeft: '15px', marginRight: '15px' }}
                   >
                     <Grid
@@ -625,6 +692,7 @@ export function GroupDetails({
                     >
                       <Grid item className={classes.itemx} md={12}>
                         <SkillMarks
+                          childId={childId}
                           currentMarks={groupDetails.marks[0]}
                           semesters={values.semesters}
                           semesterDetails={groupDetails.studentSemesterDetails}
@@ -715,6 +783,12 @@ export function GroupDetails({
       {groupDetails.loading ? renderLoading() : renderMainContent()}
       {renderPrintDlg()}
       {renderSnackBar()}
+      {sliceSelDlg &&
+        <SemesterSelection
+          setSelectedSlices={setSelectedSlices}
+          handleClose={() => setSliceSelDlg(false)}
+        />
+      }
     </div>
   );
 }
