@@ -217,8 +217,6 @@ export function GroupStudents(props) {
 	const renderSemesterStatus = (childId) => {
 		const { module } = values;
 
-		console.log('module', module);
-
 		return (
 			Array.from({
 				length: values.module.years * values.module.slices,

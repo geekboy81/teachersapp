@@ -12,9 +12,6 @@ export const SEMESTER_CODES = {
 };
 
 export function getSemesterStatus(moduleInfo, childId, year, semester) {
-    console.log('year', year);
-    console.log('semester', semester);
-
     const childSummary = Object.values(moduleInfo.groups)
         .reduce((result, item) => (
         item && item.childids && result.concat(item.childids)
