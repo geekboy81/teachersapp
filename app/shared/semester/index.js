@@ -5,10 +5,18 @@ export const SEMESTER_STATUS = {
     ready: 'Ready for Marking',
 };
 
+export const SEMESTER_STATUS_COLORS = {
+    [SEMESTER_STATUS.complete]: 'steelblue',
+    [SEMESTER_STATUS.progress]: 'sandybrown',
+    [SEMESTER_STATUS.published]: 'limegreen',
+    [SEMESTER_STATUS.ready]: 'pink',
+};
+
+
 export const SEMESTER_CODES = {
-    complete: 2,
-    progress: 1,
-    published: 3,
+    [SEMESTER_STATUS.complete]: 2,
+    [SEMESTER_STATUS.progress]: 1,
+    [SEMESTER_STATUS.published]: 3,
 };
 
 export function getSemesterStatus(moduleInfo, childId, year, semester) {
@@ -32,22 +40,5 @@ export function getSemesterStatus(moduleInfo, childId, year, semester) {
 }
 
 export function getStatusCode(semesterStatus) {
-    let code = SEMESTER_CODES.progress;
-
-    switch(semesterStatus) {
-        case SEMESTER_STATUS.complete:
-            code = SEMESTER_CODES.complete;
-            break;
-        case SEMESTER_STATUS.progress:
-            code = SEMESTER_CODES.progress;
-            break;
-        case SEMESTER_STATUS.published:
-            code = SEMESTER_CODES.published;
-            break;
-        default:
-            code = SEMESTER_CODES.progress;
-            break;
-    }
-
-    return code;
+    return SEMESTER_CODES[semesterStatus];
 }

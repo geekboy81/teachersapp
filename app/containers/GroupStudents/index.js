@@ -42,7 +42,7 @@ import TableBody from '@material-ui/core/TableBody';
 import Table from '@material-ui/core/Table';
 import * as axios from 'axios';
 
-import { SEMESTER_STATUS, getSemesterStatus } from 'shared/semester';
+import { SEMESTER_STATUS, SEMESTER_STATUS_COLORS, getSemesterStatus } from 'shared/semester';
 
 import makeSelectGroupStudents from './selectors';
 import reducer from './reducer';
@@ -129,7 +129,11 @@ const useStyles = makeStyles(theme => ({
 	},
 	semesterStatus: {
 		fontSize: '0.8rem',
-	}
+	},
+	tableCellHead: {
+		border: 'none',
+		fontWeight: 'bold',
+	},
 }));
 
 export function GroupStudents(props) {
@@ -187,7 +191,7 @@ export function GroupStudents(props) {
 						key={index + 1}
 						scope="colgroup"
 						colSpan={values.module.slices}
-						className={classes.tableCell}
+						className={classes.tableCellHead}
 					>
 						Year {index + 1}
 					</TableCell>
@@ -204,7 +208,7 @@ export function GroupStudents(props) {
 							scope="col"
 							align="center"
 							key={`xx${index}`}
-							className={classes.tableCell}
+							className={classes.tableCellHead}
 						>
 							Trimester {index % values.module.slices + 1}
 						</TableCell>
@@ -220,32 +224,31 @@ export function GroupStudents(props) {
 		return (
 			Array.from({
 				length: values.module.years * values.module.slices,
-			}).map((_, index) => (
-				<TableCell
-					scope="col"
-					align="center"
-					key={`xx${index}`}
-					className={classes.tableCell}
-				>
-					<Typography	className={classes.semesterStatus}>
-						{
-							getSemesterStatus(
-								module,
-								childId,
-								Math.floor((index + 1) / values.module.slices) + 1,
-								index % values.module.slices + 1,
-							) === SEMESTER_STATUS.ready
-								? ''
-								: getSemesterStatus(
-									module,
-									childId,
-									Math.floor((index + 1) / values.module.slices) + 1,
-									index % values.module.slices + 1,
-								)
-						}
-					</Typography>
-				</TableCell>
-			))
+			}).map((_, index) => {
+				const status = getSemesterStatus(
+					module,
+					childId,
+					Math.floor((index + 1) / values.module.slices) + 1,
+					index % values.module.slices + 1,
+				);
+
+				return (
+					<TableCell
+						scope="col"
+						align="center"
+						key={`xx${index}`}
+						className={classes.tableCell}
+					>
+						<Typography	className={classes.semesterStatus} style={{ color: SEMESTER_STATUS_COLORS[status]}}>
+							{
+								status === SEMESTER_STATUS.ready
+									? ''
+									: status
+							}
+						</Typography>
+					</TableCell>
+				);
+			})
 		);
 	}
 
