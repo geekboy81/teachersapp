@@ -26,6 +26,7 @@ import {
   Typography,
   withStyles,
 } from '@material-ui/core';
+
 import PropTypes from 'prop-types';
 import IconButton from '@material-ui/core/IconButton';
 import SearchIcon from '@material-ui/icons/Search';
@@ -34,16 +35,20 @@ import InputBase from '@material-ui/core/InputBase';
 import Avatar from '@material-ui/core/Avatar';
 import LinearProgress from '@material-ui/core/LinearProgress';
 import Divider from '@material-ui/core/Divider';
+
 import saga from './saga';
 import reducer from './reducer';
 import makeSelectGroupsList from './selectors';
 import { BACKEND_URL } from '../../config';
 import moduleService from '../../shared/service/module';
+import { SEMESTER_STATUS } from 'shared/semester';
+
 const ColorLinearProgress = withStyles({
   barColorPrimary: {
     backgroundColor: '#3CC89C',
   },
 })(LinearProgress);
+
 const useStyles = makeStyles(theme => ({
   searchRoot: {
     padding: '2px 4px',
@@ -178,12 +183,22 @@ export function GroupsList(props) {
                                   <Grid item className={classes.progressRoot} md={6}>
                                     <ColorLinearProgress
                                       variant="determinate"
-                                      value={(group.total <= 0 ? 0: ((group.childids.reduce((a,b) => b.status === 'marked' || b.status === 'published' ? a + 1 : a, 0) / group.total) * 100)).toFixed(2) }
+                                      value={(group.total <= 0 ? 0: ((group.childids.reduce((a,b) => (
+                                        b.status === SEMESTER_STATUS.progress ||
+                                        b.status === SEMESTER_STATUS.complete ||
+                                        b.status === SEMESTER_STATUS.published
+                                       ) ? a + 1 : a, 0) / group.total) * 100)).toFixed(2) }
                                       className={classes.customProgress}
                                     />
                                   </Grid>
                                   <Grid item md={6} className={classes.progressText}>
-                                    <Typography>{(group.total <= 0 ? 0: ((group.childids.reduce((a,b) => b.status === 'marked' || b.status === 'published' ? a + 1 : a, 0) / group.total) * 100)).toFixed(2)}% Marked</Typography>
+                                    <Typography>
+                                      {(group.total <= 0 ? 0: ((group.childids.reduce((a,b) => (
+                                        b.status === SEMESTER_STATUS.progress ||
+                                        b.status === SEMESTER_STATUS.complete ||
+                                        b.status === SEMESTER_STATUS.published
+                                      ) ? a + 1 : a, 0) / group.total) * 100)).toFixed(2)}% Marked
+                                    </Typography>
                                   </Grid>
                                 </Grid>
                               </Grid>

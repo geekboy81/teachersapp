@@ -32,7 +32,9 @@ import clsx from 'clsx';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import { green } from '@material-ui/core/colors';
 import TextField from '@material-ui/core/TextField';
+
 import DisplayDate from '../DisplayDate';
+import { SEMESTER_STATUS } from 'shared/semester';
 
 const cardHeight = 403.74;
 const cardWidth = 333;
@@ -338,7 +340,11 @@ function ModuleCard(props) {
                               variant="overline"
                               className={classes.floatText}
                             >
-                              {percentage(childObj.childids.reduce((a,b) => b.status === 'marked' || b.status === 'published' ? a + 1 : a, 0), childObj.total).toFixed(2)} %
+                              {percentage(childObj.childids.reduce((a,b) => (
+                                b.status === SEMESTER_STATUS.progress ||
+                                b.status === SEMESTER_STATUS.complete ||
+                                b.status === SEMESTER_STATUS.published
+                               ) ? a + 1 : a, 0), childObj.total).toFixed(2)} %
                             </Typography>
                           </Grid>
                         </Grid>
@@ -355,7 +361,11 @@ function ModuleCard(props) {
                             <ColorLinearProgress
                               variant="determinate"
                               value={percentage(
-                                childObj.childids.reduce((a,b) => b.status === 'marked' || b.status === 'published' ? a + 1 : a, 0),
+                                childObj.childids.reduce((a,b) => (
+                                  b.status === SEMESTER_STATUS.progress ||
+                                  b.status === SEMESTER_STATUS.complete ||
+                                  b.status === SEMESTER_STATUS.published
+                                 ) ? a + 1 : a, 0),
                                 childObj.total,
                               )}
                               className={classes.progress}
