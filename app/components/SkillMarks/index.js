@@ -92,8 +92,6 @@ function SkillMarks({
       currentYear,
       currentSemester,
     );
-    console.log('semesterStatus', semesterStatus);
-
 
     if (
       semesterStatus == SEMESTER_STATUS.complete ||
@@ -141,8 +139,6 @@ function SkillMarks({
 
   React.useEffect(() => {
     const gradesToGenerate = [];
-
-    console.log('generateMarksGrid', generateMarksGrid);
 
     for (let i = 0; i < generateMarksGrid.length; i++) {
       gradesToGenerate[i] = [];

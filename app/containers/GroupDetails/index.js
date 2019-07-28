@@ -49,8 +49,13 @@ import makeSelectGroupDetails, {
 
 import SemesterSelection from '../../components/SemesterSelection';
 
-import { SEMESTER_STATUS, getSemesterStatus } from 'shared/semester';
+import { SEMESTER_STATUS, getSemesterStatus, getStatusCode } from 'shared/semester';
 
+const ACTION_TYPES = {
+  revert: 'revert',
+  complete: 'complete',
+  publish: 'publish',
+};
 
 const useStyles = makeStyles(theme => ({
   root: {
@@ -182,6 +187,12 @@ export function GroupDetails({
 
   // NOTE: New states to mark for multiple semesters 2019.7.21
   const [allMarks, setAllMarks] = React.useState({});
+  const [actionType, setActionType] = React.useState({
+    action: 'done',
+    status: 1,
+    message: '',
+    shouldGoback: false,
+  });
 
   const { moduleId, childId, studentName } = match.params;
 
@@ -289,8 +300,6 @@ export function GroupDetails({
           ),
       );
 
-      console.log('semesters', semesters);
-
       // eslint-disable-next-line camelcase
       const { course_breakdown } = studentMarksDetails.module;
 
@@ -344,9 +353,6 @@ export function GroupDetails({
       // --------------------------
       // --------------------------
 
-      console.log('groupdetails', groupDetails);
-      console.log('semesters', semesters);
-
       setValues({
         ...values,
         semesters,
@@ -396,6 +402,14 @@ export function GroupDetails({
     finalMarks[category.name].comment = comment;
     setFinalMarks({ ...finalMarks });
   };
+
+  const handleMultipleSemesterSelection = (selectedSemesters) => {
+    setSliceSelDlg(false);
+
+    if (selectedSemesters) {
+      updateMarks(selectedSemesters);
+    }
+  }
 
   const handleChangeMark = (
     grades,
@@ -449,8 +463,23 @@ export function GroupDetails({
     setPreview({ open: true, data: {} });
   };
 
-  const updateMarks = async (statusCode, message, shouldGoback) => {
+  const updateMarks = async (selectedSemesters=[]) => {
+    const { status, message, shouldGoback } = actionType;
+
     const promises = Object.values(allMarks).map(async (markInfo) => {
+      const statusCode = selectedSemesters.some(item => (
+        item.year = markInfo.year &&
+        item.slice == markInfo.slice
+      ))
+        ? status
+        : getStatusCode(getSemesterStatus(
+            groupDetails.studentMarksDetails.module,
+            childId,
+            markInfo.year,
+            markInfo.slice,
+          ));
+
+
       const req = {
         marks: markInfo.marks,
         clazz_id: parseInt(moduleId, 10),
@@ -493,32 +522,93 @@ export function GroupDetails({
     }
   }
 
-  const handlePublishToAdmin = async () => {
-    await updateMarks(
-      3,
-      'Student marks has been published to the admin successfully !',
-      false,
-    );
+  const handlePublishToAdmin = () => {
+    setSliceSelDlg(true);
+    setActionType({
+      action: ACTION_TYPES.publish,
+      status: 3,
+      message: 'Student marks has been published to the admin successfully !',
+      shouldGoback: false,
+    });
   };
 
-  const handlePublishToParents = async () => {
-    await updateMarks(
-      4,
-      'Student marks has been published to there parents successfully !',
-      false,
-    );
+  const handlePublishToParents = () => {
+    setSliceSelDlg(true);
+    setActionType({
+      action: ACTION_TYPES.publish,
+      status: 4,
+      message: 'Student marks has been published to there parents successfully !',
+      shouldGoback: false,
+    });
   };
 
   const handleDone = async () => {
-    await updateMarks(
-      1,
-      'Student marks has been saved successfully !',
-      true,
-    );
+    const promises = Object.values(allMarks).map(async (markInfo) => {
+      const statusCode = getStatusCode(getSemesterStatus(
+        groupDetails.studentMarksDetails.module,
+        childId,
+        markInfo.year,
+        markInfo.slice,
+      ));
+
+      const req = {
+        marks: markInfo.marks,
+        clazz_id: parseInt(moduleId, 10),
+        child_id: parseInt(childId, 10),
+        status: statusCode,
+        slice: markInfo.slice,
+        year: markInfo.year,
+      };
+
+      try {
+        const updateMarkResp = await marksService.addUpdateMarks(req);
+        return updateMarkResp;
+      } catch (e) {
+        setErrorFeedback({
+          ...errorFeedback,
+          open: true,
+          message: e.message,
+        });
+      }
+
+      return null;
+    });
+
+    const result = await Promise.all(promises);
+
+    if (result.every(item => item && item.status === 'success')) {
+      setErrorFeedback({
+        ...errorFeedback,
+        open: true,
+        message: 'Student marks has been saved successfully !',
+      });
+
+      setTimeout(() => {
+        history.goBack();
+      }, 1500);
+    } else {
+      // throw new Error('Error occured in fetching data');
+    }
   };
 
   const handleRevert = () => {
     setSliceSelDlg(true);
+    setActionType({
+      action: ACTION_TYPES.revert,
+      status: 1,
+      message: 'Student marks has been saved successfully !',
+      shouldGoback: true,
+    });
+  }
+
+  const handleComplete = () => {
+    setSliceSelDlg(true);
+    setActionType({
+      action: ACTION_TYPES.revert,
+      status: 2,
+      message: 'Student marks has been saved successfully !',
+      shouldGoback: true,
+    });
   }
 
   const renderLoading = () => (
@@ -611,7 +701,7 @@ export function GroupDetails({
           </Button>
         </div>
         <div className={classes.optionButton}>
-          <Button color="primary" variant="contained">
+          <Button color="primary" variant="contained" onClick={handleComplete}>
             Complete
           </Button>
         </div>
@@ -786,7 +876,9 @@ export function GroupDetails({
       {sliceSelDlg &&
         <SemesterSelection
           setSelectedSlices={setSelectedSlices}
-          handleClose={() => setSliceSelDlg(false)}
+          handleClose={handleMultipleSemesterSelection}
+          years={groupDetails.studentMarksDetails.module.years}
+          slices={groupDetails.studentMarksDetails.module.slices}
         />
       }
     </div>

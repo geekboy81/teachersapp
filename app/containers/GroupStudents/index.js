@@ -228,7 +228,9 @@ export function GroupStudents(props) {
 				const status = getSemesterStatus(
 					module,
 					childId,
-					Math.floor((index + 1) / values.module.slices) + 1,
+          (index + 1) % values.module.slices === 0
+            ? (index + 1) / values.module.slices
+            : Math.floor((index + 1) / values.module.slices) + 1,
 					index % values.module.slices + 1,
 				);
 

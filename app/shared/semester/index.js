@@ -40,5 +40,5 @@ export function getSemesterStatus(moduleInfo, childId, year, semester) {
 }
 
 export function getStatusCode(semesterStatus) {
-    return SEMESTER_CODES[semesterStatus];
+    return SEMESTER_CODES[semesterStatus] || 1;
 }
