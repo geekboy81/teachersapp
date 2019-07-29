@@ -9,9 +9,8 @@ import PropTypes from 'prop-types';
 import { connect } from 'react-redux';
 import { createStructuredSelector } from 'reselect';
 import { compose } from 'redux';
+import { API } from 'aws-amplify';
 
-import { useInjectSaga } from 'utils/injectSaga';
-import { useInjectReducer } from 'utils/injectReducer';
 import {
   Card,
   Grid,
@@ -23,6 +22,7 @@ import {
   Typography,
   withStyles,
 } from '@material-ui/core';
+
 import Paper from '@material-ui/core/Paper';
 import InputBase from '@material-ui/core/InputBase';
 import IconButton from '@material-ui/core/IconButton';
@@ -40,15 +40,24 @@ import TableRow from '@material-ui/core/TableRow';
 import TableCell from '@material-ui/core/TableCell';
 import TableBody from '@material-ui/core/TableBody';
 import Table from '@material-ui/core/Table';
+import Checkbox from '@material-ui/core/Checkbox';
+import Button from '@material-ui/core/Button';
+
 import * as axios from 'axios';
 
 import { SEMESTER_STATUS, SEMESTER_STATUS_COLORS, getSemesterStatus } from 'shared/semester';
+
+import { useInjectSaga } from 'utils/injectSaga';
+import { useInjectReducer } from 'utils/injectReducer';
 
 import makeSelectGroupStudents from './selectors';
 import reducer from './reducer';
 import saga from './saga';
 import { BACKEND_URL } from '../../config';
 import moduleService from '../../shared/service/module';
+
+import { publishSemesters } from 'shared/api/semester';
+
 
 const GreenRadio = withStyles({
   root: {
@@ -122,7 +131,8 @@ const useStyles = makeStyles(theme => ({
 		display: 'flex',
 		justifyContent: 'space-between',
 		alignItems: 'center',
-		border: 'none',
+    border: 'none',
+    maxWidth: '200px',
 	},
 	tableCell: {
 		border: 'none',
@@ -132,8 +142,13 @@ const useStyles = makeStyles(theme => ({
 	},
 	tableCellHead: {
 		border: 'none',
-		fontWeight: 'bold',
-	},
+    fontWeight: 'bold',
+    minWidth: '125px',
+  },
+  tableCellButton: {
+    border: 'none',
+    minWidth: '200px',
+  }
 }));
 
 export function GroupStudents(props) {
@@ -150,13 +165,20 @@ export function GroupStudents(props) {
     module: {
       module: '',
     },
+    childIds: [],
+    allSelected: false,
   });
 
   const { moduleId } = props.match.params;
 
   useEffect(() => {
+    fetchAllData(moduleId);
+  }, [moduleId]);
+
+
+  const fetchAllData = (module_id) => {
     async function fetchModuleDetails() {
-      const module = await moduleService.getModuleById(moduleId);
+      const module = await moduleService.getModuleById(module_id);
       return module;
     }
 
@@ -171,17 +193,126 @@ export function GroupStudents(props) {
 
       setValues({ ...values, module: m, selectedGroup: sGroup });
     });
-  }, [moduleId]);
+  }
 
   const handleGoToStudentDetails = (id, ss) => {
     const studentName = `${ss.firstname} ${ss.lastname}`;
     props.history.push(`/groups/details/${moduleId}/${id}/${studentName}`);
   };
 
+  const handlePublish = async () => {
+    const { childIds } = values;
+
+    const promises = childIds.map(async (childId) => {
+      try {
+        const init = {
+          body: {
+            child_id: Number(childId),
+            clazz_id: Number(moduleId),
+          },
+        };
+        await API.post('update_semester', '', init)
+      } catch (e) {
+        console.log('error!!')
+      }
+    })
+
+    const result = await Promise.all(promises);
+
+    setValues({
+      ...values,
+      childIds: [],
+    });
+
+    fetchAllData(moduleId);
+  }
+
+  const handleChildSelection = (e) => {
+    const childId = Number(e.target.value);
+    const { childIds } = values;
+
+    if (e.target.checked && !childIds.includes(childId)) {
+      setValues({
+        ...values,
+        childIds: childIds.concat([childId])
+      });
+    } else if (!e.target.checked && childIds.includes(childId)) {
+      setValues({
+        ...values,
+        childIds: childIds.reduce((result, id) => (
+          id == childId ? result : result.concat([id])
+        ), []),
+      });
+    }
+  }
+
+  const getStudents = () => {
+    return Object.values(values.module.groups)
+      .filter(g =>
+        g.name
+          .toLowerCase()
+          .includes(values.selectedGroup.name.toLowerCase()),
+      )
+      .map(group =>
+        Object.values(group.childids).filter(s =>
+            (s.firstname
+              .toLowerCase()
+              .includes(values.search.toLowerCase()) ||
+              s.lastname
+                .toLowerCase()
+                .includes(values.search.toLowerCase())) &&
+            s.status
+              .toLowerCase()
+              .includes(values.markFilter.toLowerCase()),
+        )
+      )
+      .reduce((result, item) => result.concat(item), []);
+  }
+
+  const handleAllSelection = (e) => {
+    if (e.target.checked) {
+      const students = getStudents();
+      const childIds = students.map(student => student.childid);
+
+      console.log('students', students, childIds);
+
+      setValues({
+        ...values,
+        childIds,
+        allSelected: true,
+      });
+    } else {
+      setValues({
+        ...values,
+        allSelected: false,
+        childIds: [],
+      });
+    }
+  }
+
 	const renderSemesters = () => (
 		<TableHead>
 			<TableRow>
-				<TableCell className={classes.tableCell} />
+        {props.role == 'admin' && (
+          <TableCell rowSpan={2} className={classes.tableCell} padding="checkbox">
+            <Checkbox
+              checked={values.allSelected}
+              onChange={handleAllSelection}
+              color="primary"
+              inputProps={{
+                'aria-label': 'secondary checkbox',
+              }}
+            />
+          </TableCell>
+        )}
+
+				<TableCell className={classes.tableCellButton} rowSpan={2} padding="none">
+          {props.role == 'admin' &&
+            <Button color="primary" variant="contained" onClick={handlePublish}>
+              Publish to Parent(s)
+            </Button>
+          }
+        </TableCell>
 
 				{Array.from({
 					length: values.module.years,
@@ -199,7 +330,6 @@ export function GroupStudents(props) {
 			</TableRow>
 
 			<TableRow>
-				<TableCell className={classes.tableCell} />
 				{
 					Array.from({
 						length: values.module.years * values.module.slices,
@@ -218,7 +348,7 @@ export function GroupStudents(props) {
 		</TableHead>
 	)
 
-	const renderSemesterStatus = (childId) => {
+	const renderSemesterStatus = (childId, student) => {
 		const { module } = values;
 
 		return (
@@ -239,7 +369,10 @@ export function GroupStudents(props) {
 						scope="col"
 						align="center"
 						key={`xx${index}`}
-						className={classes.tableCell}
+            className={classes.tableCell}
+            onClick={() =>
+              handleGoToStudentDetails(childId, student)
+            }
 					>
 						<Typography	className={classes.semesterStatus} style={{ color: SEMESTER_STATUS_COLORS[status]}}>
 							{
@@ -280,19 +413,34 @@ export function GroupStudents(props) {
 											.includes(values.markFilter.toLowerCase()),
 								)
 								.map(student => (
-									<TableRow
-										onClick={() =>
-											handleGoToStudentDetails(student.childid, student)
-										}
-									>
-										<TableCell scope="colgroup" colSpan={2} className={classes.childAvatar}>
+									<TableRow>
+                    {props.role == 'admin' && (
+                      <TableCell className={classes.tableCell} padding="checkbox">
+                        <Checkbox
+                          checked={values.childIds.includes(student.childid)}
+                          onChange={handleChildSelection}
+                          value={student.childid}
+                          color="primary"
+                          inputProps={{
+                            'aria-label': 'secondary checkbox',
+                          }}
+                        />
+                      </TableCell>
+                    )}
+
+										<TableCell
+                      scope="row" component="th" colSpan={2} className={classes.childAvatar}
+                      onClick={() =>
+                        handleGoToStudentDetails(student.childid, student)
+                      }
+                    >
 											<Avatar>{student.firstname.substring(0, 1)}</Avatar>
 											<Typography variant="subtitle1">
 												{`${student.firstname} ${student.lastname}`}
 											</Typography>
 										</TableCell>
 
-										{renderSemesterStatus(student.childid)}
+										{renderSemesterStatus(student.childid, student)}
 									</TableRow>
 								)))
 				}
@@ -472,6 +620,7 @@ GroupStudents.propTypes = {
   // dispatch: PropTypes.func.isRequired,
   history: PropTypes.any,
   match: PropTypes.any,
+  role: PropTypes.any,
 };
 
 const mapStateToProps = createStructuredSelector({

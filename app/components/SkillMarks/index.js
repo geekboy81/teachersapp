@@ -189,7 +189,7 @@ function SkillMarks({
                 align="center"
                 key={index + 1}
                 scope="colgroup"
-                colSpan={2}
+                colSpan={module.slices}
               >
                 Year {index + 1}
               </TableCell>

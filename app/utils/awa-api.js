@@ -395,6 +395,14 @@ const API = {
       region: 'us-east-1',
       custom_header: setHeader,
     },
+    {
+      name: 'update_semester',
+      endpoint:
+        'https://36jllv9kxa.execute-api.us-east-1.amazonaws.com/dev/report/update/status',
+      service: 'lambda',
+      region: 'us-east-1',
+      custom_header: setHeader,
+    },
   ],
 };
 

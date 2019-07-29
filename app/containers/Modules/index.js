@@ -128,7 +128,7 @@ function Modules(props) {
             <Route
               exact
               path={Routes.GROUPS_STUDENTS}
-              component={GroupStudents}
+              render={prop => <GroupStudents {...prop} role={props.role} />}
             />
             <Route exact path={Routes.ADD_MODULE_ROUTE} component={AddModule} />
             <Route exact path={Routes.EDIT_MODULE_ROUTE} component={AddModule} />

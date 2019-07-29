@@ -49,7 +49,12 @@ import makeSelectGroupDetails, {
 
 import SemesterSelection from '../../components/SemesterSelection';
 
-import { SEMESTER_STATUS, getSemesterStatus, getStatusCode } from 'shared/semester';
+import {
+  SEMESTER_STATUS,
+  SEMESTER_STATUS_COLORS,
+  getSemesterStatus,
+  getStatusCode,
+} from 'shared/semester';
 
 const ACTION_TYPES = {
   revert: 'revert',
@@ -128,7 +133,15 @@ const useStyles = makeStyles(theme => ({
   },
   compelteHeader: {
     color: 'white',
-    backgroundColor: 'darkgrey',
+    backgroundColor: SEMESTER_STATUS_COLORS[SEMESTER_STATUS.complete],
+  },
+  inProgressHeader: {
+    color: 'white',
+    backgroundColor: SEMESTER_STATUS_COLORS[SEMESTER_STATUS.progress],
+  },
+  publishedHeader: {
+    color: 'white',
+    backgroundColor: SEMESTER_STATUS_COLORS[SEMESTER_STATUS.published],
   },
 }));
 
@@ -283,6 +296,10 @@ export function GroupDetails({
                 className = classes.currentSemesterHeader;
               } else if (currentSemesterStatus == SEMESTER_STATUS.complete) {
                 className = classes.compelteHeader;
+              } else if (currentSemesterStatus == SEMESTER_STATUS.progress) {
+                className = classes.inProgressHeader;
+              } else if (currentSemesterStatus == SEMESTER_STATUS.published) {
+                className = classes.publishedHeader;
               } else if (
                 currentSemesterStatus == SEMESTER_STATUS.progress
               ) {
