@@ -95,6 +95,7 @@ function SkillMarks({
 
     if (
       semesterStatus == SEMESTER_STATUS.complete ||
+      semesterStatus == SEMESTER_STATUS.published ||
       (
         !semester.semester.is_current &&
         role !== 'admin' &&
