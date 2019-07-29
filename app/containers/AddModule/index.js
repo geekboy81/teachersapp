@@ -463,7 +463,7 @@ export function AddModule(props) {
     grades.forEach(grade => {
       scale.grades[grade.mark] = grade.description;
     });
-    console.log(values);
+
     try {
       const scaleResp = await scaleService.addScale(scale);
       if (scaleResp.status === 'error') {

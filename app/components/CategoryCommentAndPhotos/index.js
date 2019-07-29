@@ -69,13 +69,13 @@ function CategoryCommentAndPhotos({
     enter: theme.transitions.duration.enteringScreen,
     exit: theme.transitions.duration.leavingScreen,
   };
+
   const handleOnCommentChange = e => {
     onCommentChange(e.target.value);
     setCommentOnlyValue(e.target.value);
-    console.log(currentMarks);
   };
+
   const handleCapture = ({ target }) => {
-    // console.log(target);
     const file = target.files[0];
     const photo = `${category.name}-${moment().format('x')}`;
     Storage.put(photo, file, {

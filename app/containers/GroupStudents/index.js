@@ -269,12 +269,35 @@ export function GroupStudents(props) {
       .reduce((result, item) => result.concat(item), []);
   }
 
+  const getMarkedStatus = () => {
+    if (values.module.groups) {
+      const currentInfo = Object.values(values.module.groups)
+      .filter(g =>
+        g.name
+          .toLowerCase()
+          .includes(values.selectedGroup.name.toLowerCase()),
+      );
+
+      const childsInfo = currentInfo.reduce((acc, val) => acc.concat(val.childids), [])
+
+      const markedStatus = childsInfo.reduce((acc, val) => (
+        acc + val.summary.length
+      ), 0);
+
+      const ratio = childsInfo
+        ? Number(markedStatus / (values.module.years * values.module.slices * childsInfo.length)).toFixed(2) * 100
+        : 0;
+
+      return Number(ratio).toFixed(2);
+    }
+
+    return '';
+  }
+
   const handleAllSelection = (e) => {
     if (e.target.checked) {
       const students = getStudents();
       const childIds = students.map(student => student.childid);
-
-      console.log('students', students, childIds);
 
       setValues({
         ...values,
@@ -568,34 +591,7 @@ export function GroupStudents(props) {
             <Grid item style={{ paddingTop: '8px' }}>
               <Typography>
                 Class status -{' '}
-                {values.module.groups &&
-                Object.values(values.module.groups)
-                  .filter(g =>
-                    g.name
-                      .toLowerCase()
-                      .includes(values.selectedGroup.name.toLowerCase()),
-                  )
-                  .reduce((acc, val) => acc + val.total, 0) > 0
-                  ? values.module.groups &&
-                    (Object.values(values.module.groups)
-                      .filter(g =>
-                        g.name
-                          .toLowerCase()
-                          .includes(values.selectedGroup.name.toLowerCase()),
-                      )
-                      .reduce((acc, val) => acc + val.marked, 0) /
-                      (values.module.groups &&
-                        Object.values(values.module.groups)
-                          .filter(g =>
-                            g.name
-                              .toLowerCase()
-                              .includes(
-                                values.selectedGroup.name.toLowerCase(),
-                              ),
-                          )
-                          .reduce((acc, val) => acc + val.total, 0))) *
-                      100
-                  : 0}
+                {getMarkedStatus()}
                 % Marked
               </Typography>
             </Grid>

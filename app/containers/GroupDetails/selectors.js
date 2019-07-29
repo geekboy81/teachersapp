@@ -16,9 +16,7 @@ const getModuleSkillsMarks = state => {
       // const { module, scales } = studentMarksDetails;
       const { scales } = studentMarksDetails;
       const { module } = studentMarksDetails;
-      console.log('......................');
-      console.log(state);
-      console.log('.......................');
+
       const { course_breakdown } = module;
       try {
         delete course_breakdown.num_partitions;

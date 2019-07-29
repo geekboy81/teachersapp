@@ -92,7 +92,6 @@ export function* addModuleSaga(moduleToSave) {
 
 export function* cloneModule() {
   const state = yield select(s => s.groupDetails);
-  console.log('clone state', state);
 
   try {
     const moduleResp = yield call(
