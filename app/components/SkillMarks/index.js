@@ -34,7 +34,6 @@ function SkillMarks({
   onHandleChangeMark,
   generateMarksGrid,
   handleOnStudentGradesChanged,
-  handleCommentChange,
   handlePhotosChange,
   studentGrades,
   currentMarks,
@@ -42,6 +41,10 @@ function SkillMarks({
   role,
   groupDetails,
   childId,
+  handleCommentChange,
+  handleGoalsChange,
+  categoryComments,
+  categoryGoals
 }) {
   const classes = useStyles();
 
@@ -61,8 +64,11 @@ function SkillMarks({
   };
 
   const onCommentChange = cmmt => {
-    setComment(cmmt);
     handleCommentChange(category, cmmt);
+  };
+
+  const onGoalChange = cmmt => {
+    handleGoalsChange(category, cmmt)
   };
 
   const onPhotosChange = photoList => {
@@ -278,6 +284,50 @@ function SkillMarks({
       </Table>
       <Grid container>
         <Grid
+          item md={6}
+          style={{
+            display: 'flex',
+            alignItems: 'flex-end',
+            paddingLeft: '20px',
+            paddingTop: '40px',
+            paddingBottom: '40px',
+          }}
+        >
+          <CategoryCommentAndPhotos
+            category={category}
+            categoryComments={categoryComments}
+            config={{ hideCategoryName: true }}
+            module={module}
+            onCommentChange={c => onCommentChange(c)}
+            photosList={photos}
+            onPhotosListChange={onPhotosChange}
+            key={category.name}
+            label="Comment"
+          />
+        </Grid>
+        <Grid
+          item md={6}
+          style={{
+            display: 'flex',
+            alignItems: 'flex-end',
+            paddingLeft: '20px',
+            paddingTop: '40px',
+            paddingBottom: '40px',
+          }}
+        >
+          <CategoryCommentAndPhotos
+            category={category}
+            categoryComments={categoryGoals}
+            config={{ hideCategoryName: true }}
+            module={module}
+            onCommentChange={c => onGoalChange(c)}
+            photosList={photos}
+            onPhotosListChange={onPhotosChange}
+            key={category.name}
+            label="Goal"
+          />
+        </Grid>
+        {/* <Grid
           item
           md={12}
           style={{
@@ -294,9 +344,8 @@ function SkillMarks({
             onCommentChange={cmt => onCommentChange(cmt)}
             onPhotosListChange={onPhotosChange}
             photosList={photos}
-            config={{ hideCategoryName: true }}
           />
-        </Grid>
+        </Grid> */}
       </Grid>
     </div>
   );
@@ -308,7 +357,6 @@ SkillMarks.propTypes = {
   category: PropTypes.any,
   categoryIndex: PropTypes.any,
   onHandleChangeMark: PropTypes.func,
-  handleCommentChange: PropTypes.func,
   handlePhotosChange: PropTypes.func,
   generateMarksGrid: PropTypes.any,
   handleOnStudentGradesChanged: PropTypes.func,
@@ -318,6 +366,11 @@ SkillMarks.propTypes = {
   role: PropTypes.any,
   groupDetails: PropTypes.any,
   childId: PropTypes.number,
+
+  handleGoalsChange: PropTypes.func,
+  handleCommentChange: PropTypes.func,
+  categoryComments: PropTypes.array,
+  categoryGoals: PropTypes.array,
 };
 
 export default SkillMarks;

@@ -39,13 +39,14 @@ import PrintableDocument from '../../components/PrintableDocument';
 import reducer from './reducer';
 import saga from './saga';
 import {
-  loadModule, loadScales, loadChildMarks, loadStudentMarksDetails,
+  loadModule,
+  loadScales,
+  loadChildMarks,
+  loadStudentMarksDetails,
   getStudentMarksDetails,
 } from './actions';
 
-import makeSelectGroupDetails, {
-  makeModuleSkillsMarks,
-} from './selectors';
+import makeSelectGroupDetails, { makeModuleSkillsMarks } from './selectors';
 
 import SemesterSelection from '../../components/SemesterSelection';
 
@@ -143,6 +144,10 @@ const useStyles = makeStyles(theme => ({
     color: 'white',
     backgroundColor: SEMESTER_STATUS_COLORS[SEMESTER_STATUS.published],
   },
+  commentsBox: {
+    display: 'flex',
+    alignItems: 'flex-end',
+  },
 }));
 
 
@@ -193,6 +198,9 @@ export function GroupDetails({
   const [categoriesList, setCategoriesList] = React.useState([]);
   const [studentGrades, setStudentGrades] = React.useState([]);
   const [finalMarks, setFinalMarks] = React.useState({});
+  const [semesterComments, setSemesterComments] = React.useState({});
+  const [semesterGoals, setSemesterGoals] = React.useState({});
+
   const [preview, setPreview] = React.useState({
     open: false,
     data: {},
@@ -411,14 +419,134 @@ export function GroupDetails({
     finalMarks[category.name].comments[0] = comment;
   };
 
-  const handleCommentChange = (category, comment) => {
-    if (!finalMarks[category.name]) {
-      finalMarks[category.name] = {};
+  const emptyOperationWithComments = (category, comment) => {
+    const {
+      studentSemesterDetails,
+    } = groupDetails;
+
+    const year = studentSemesterDetails.year;
+    const slice = studentSemesterDetails.slice;
+
+    const adjustedMarks = (allMarks[year * 100 + slice] || { marks: {}}).marks;
+
+    // NOTE: Refelct user's selection on marks
+    if (!adjustedMarks[category.name]) {
+      adjustedMarks[category.name] = {};
     }
 
-    finalMarks[category.name].comment = comment;
-    setFinalMarks({ ...finalMarks });
+    if (!adjustedMarks[category.name]['comment']) {
+      adjustedMarks[category.name]['comment'] = ['[]', '[]']
+    }
+
+    // New for multiple semesters 2019.7.21
+    const marks = {
+      [year * 100 + slice]: {
+        year,
+        slice,
+        marks: adjustedMarks,
+      },
+    };
+
+    setAllMarks({ ...allMarks, ...marks });
+  }
+
+  const handleCommentChange = (category, comment) => {
+    emptyOperationWithComments(category, comment);
+
+    setSemesterComments({
+      ...semesterComments,
+      ...{
+        [category.name]: comment,
+      },
+    });
   };
+
+  const handleGoalsChange = (category, comment) => {
+    emptyOperationWithComments(category, comment)
+
+    setSemesterGoals({
+      ...semesterGoals,
+      ...{
+        [category.name]: comment,
+      },
+    });
+  }
+
+  const addCommentsToMarks = (marks, year, slice) => {
+    const {
+      studentSemesterDetails,
+    } = groupDetails;
+
+    const currentYear = studentSemesterDetails.year;
+    const currentSlice = studentSemesterDetails.slice;
+
+    if (
+      year != currentYear ||
+      slice != currentSlice
+    ) {
+      return marks;
+    }
+
+    const tempMarks = Object.assign({}, marks);
+
+    // Add comments
+    const commentAdjustedMarks = Object.keys(semesterComments).reduce((result, categoryName) => {
+      const comment = semesterComments[categoryName];
+
+      if (!result[categoryName]) {
+        result[categoryName] = {}
+      }
+
+      if (!result[categoryName]['comment']) {
+        result[categoryName]['comment'] = ['[]', '[]']
+      }
+
+      const comments = JSON.parse(result[categoryName]['comment'][0]);
+      result[categoryName]['comment'][0] = JSON.stringify(comments.concat(comment));
+
+      return result;
+    }, tempMarks);
+
+
+    // Add goal
+    const goalAdjustedMarks = Object.keys(semesterGoals).reduce((result, categoryName) => {
+      const goal = semesterGoals[categoryName];
+
+      if (!result[categoryName]) {
+        result[categoryName] = {}
+      }
+
+      if (!result[categoryName]['comment']) {
+        result[categoryName]['comment'] = ['[]', '[]']
+      }
+
+      const goals = JSON.parse(result[categoryName]['comment'][1]);
+
+      result[categoryName]['comment'][1] = JSON.stringify(goals.concat(goal));
+
+      return result;
+    }, commentAdjustedMarks);
+
+
+    return goalAdjustedMarks;
+  }
+
+  // commentIndex - 0: comment, 1: goal
+  const getCommentsFromCategory = (category, commentIndex) => {
+    const { marks } = groupDetails;
+
+    const allComments = marks
+      .reduce((result, record) => (
+        record['marks'][category.name]
+          ? result.concat([record['marks'][category.name]['comment'] || ['[]', '[]']])
+          : result
+      ), [])
+      .reduce((result, record) => (
+        result.concat(JSON.parse(record[commentIndex]))
+      ), []);
+
+    return allComments;
+  }
 
   const handleMultipleSemesterSelection = (selectedSemesters) => {
     setSliceSelDlg(false);
@@ -539,26 +667,6 @@ export function GroupDetails({
     }
   }
 
-  const handlePublishToAdmin = () => {
-    setSliceSelDlg(true);
-    setActionType({
-      action: ACTION_TYPES.publish,
-      status: 3,
-      message: 'Student marks has been published to the admin successfully !',
-      shouldGoback: false,
-    });
-  };
-
-  const handlePublishToParents = () => {
-    setSliceSelDlg(true);
-    setActionType({
-      action: ACTION_TYPES.publish,
-      status: 4,
-      message: 'Student marks has been published to there parents successfully !',
-      shouldGoback: false,
-    });
-  };
-
   const handleDone = async () => {
     const promises = Object.values(allMarks).map(async (markInfo) => {
       const statusCode = getStatusCode(getSemesterStatus(
@@ -569,7 +677,7 @@ export function GroupDetails({
       ));
 
       const req = {
-        marks: markInfo.marks,
+        marks: addCommentsToMarks(markInfo.marks, markInfo.year, markInfo.slice),
         clazz_id: parseInt(moduleId, 10),
         child_id: parseInt(childId, 10),
         status: statusCode,
@@ -722,26 +830,6 @@ export function GroupDetails({
             Complete
           </Button>
         </div>
-
-        {/* <div className={classes.optionButton}>
-          {role === 'admin' ? (
-            <Button
-              color="primary"
-              variant="contained"
-              onClick={handlePublishToParents}
-            >
-              Publish to Parents
-            </Button>
-          ) : (
-            <Button
-              color="primary"
-              variant="contained"
-              onClick={handlePublishToAdmin}
-            >
-              Publish to admin
-            </Button>
-          )}
-        </div> */}
       </div>
     </div>
   );
@@ -762,14 +850,30 @@ export function GroupDetails({
         {noMarksMode ? (
           <div>
             {categoriesList.map(category => (
-              <CategoryCommentAndPhotos
-                category={category}
-                currentMarks={groupDetails.marks[0]}
-                config={{ hideCategoryName: false }}
-                module={groupDetails.studentMarksDetails.module}
-                onCommentChange={c => handleOnCommentOnlyMode(category, c)}
-                key={category.name}
-              />
+              <Grid container>
+                <Grid item md={6} className={classes.commentsBox}>
+                  <CategoryCommentAndPhotos
+                    category={category}
+                    categoryComments={getCommentsFromCategory(category, 0)}
+                    config={{ hideCategoryName: false }}
+                    module={groupDetails.studentMarksDetails.module}
+                    onCommentChange={c => handleCommentChange(category, c)}
+                    key={category.name}
+                    label="Comment"
+                  />
+                </Grid>
+                <Grid item md={6} className={classes.commentsBox}>
+                  <CategoryCommentAndPhotos
+                    category={category}
+                    categoryComments={getCommentsFromCategory(category, 1)}
+                    config={{ hideCategoryName: true }}
+                    module={groupDetails.studentMarksDetails.module}
+                    onCommentChange={c => handleGoalsChange(category, c)}
+                    key={category.name}
+                    label="Goal"
+                  />
+                </Grid>
+              </Grid>
             ))}
           </div>
         ) : (
@@ -827,6 +931,9 @@ export function GroupDetails({
                           handleCommentChange={(category, comment) =>
                             handleCommentChange(category, comment)
                           }
+                          handleGoalsChange={(category, comment) =>
+                            handleGoalsChange(category, comment)
+                          }
                           handlePhotosChange={(category, photo) =>
                             handlePhotosListChange(category, photo)
                           }
@@ -836,6 +943,8 @@ export function GroupDetails({
                           }
                           studentGrades={studentGrades}
                           role={role}
+                          categoryComments={getCommentsFromCategory(catx, 0)}
+                          categoryGoals={getCommentsFromCategory(catx, 1)}
                         />
                       </Grid>
                     </Grid>
@@ -923,7 +1032,7 @@ const mapStateToProps = createStructuredSelector({
 
 function mapDispatchToProps(dispatch) {
   return {
-    getModule: (moduleId) => {
+    getModule: moduleId => {
       dispatch(loadModule(moduleId));
     },
     onLoadScales: () => {

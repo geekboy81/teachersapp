@@ -34,8 +34,7 @@ const styles = makeStyles(theme => ({
     right: theme.spacing(2),
   },
   input1: {
-    height: 50,
-    overflow: 'hidden',
+    paddingTop: '15px',
   },
   card: {
     width: '80px',
@@ -59,7 +58,8 @@ function CategoryCommentAndPhotos({
   comment,
   photosList,
   onPhotosListChange,
-  currentMarks,
+  categoryComments,
+  label,
 }) {
   const classes = styles;
   const theme = useTheme();
@@ -120,10 +120,7 @@ function CategoryCommentAndPhotos({
         )}
         <Grid item md={12} className={classes.oldCommentsContainer}>
           <Grid container>
-            {currentMarks &&
-            currentMarks.marks &&
-            currentMarks.marks[category.name] &&
-            currentMarks.marks[category.name].comments.map(comment => (
+            {categoryComments && categoryComments.map(comment => (
               <Grid item md={12} key={comment} className={classes.oldComments}>
                 <Typography>
                   {comment}
@@ -137,10 +134,12 @@ function CategoryCommentAndPhotos({
             variant="filled"
             multiline
             fullWidth
-            placeholder="Comment"
+            placeholder={label}
+            margin="dense"
             value={commentOnlyValue}
             onChange={handleOnCommentChange}
             InputProps={{ classes: { input: classes.input1 } }}
+            className={classes.input1}
           />
         </Grid>
         <Grid item md={6} style={{ paddingLeft: '20px', paddingRight: '20px' }}>
@@ -178,6 +177,8 @@ CategoryCommentAndPhotos.propTypes = {
   photosList: PropTypes.any,
   onPhotosListChange: PropTypes.func,
   currentMarks: PropTypes.any,
+  categoryComments: PropTypes.array,
+  label: PropTypes.string,
 };
 
 export default CategoryCommentAndPhotos;
