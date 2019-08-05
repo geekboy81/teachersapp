@@ -121,7 +121,16 @@ function CategoryCommentAndPhotos({
         <Grid item md={12} className={classes.oldCommentsContainer}>
           <Grid container>
             {categoryComments && categoryComments.map(comment => (
-              <Grid item md={12} key={comment} className={classes.oldComments}>
+              <Grid
+                item md={12} key={comment}
+                style={{
+                  marginRight: '2rem',
+                  marginTop: '5px',
+                  padding: '10px',
+                  backgroundColor: '#1155',
+                  borderRadius: '5px',
+                }}
+              >
                 <Typography>
                   {comment}
                 </Typography>
@@ -129,7 +138,7 @@ function CategoryCommentAndPhotos({
             ))}
           </Grid>
         </Grid>
-        <Grid item md={6}>
+        <Grid item md={10}>
           <TextField
             variant="filled"
             multiline
@@ -142,7 +151,11 @@ function CategoryCommentAndPhotos({
             className={classes.input1}
           />
         </Grid>
-        <Grid item md={6} style={{ paddingLeft: '20px', paddingRight: '20px' }}>
+        <Grid item md={2} style={{
+          paddingLeft: '20px', paddingRight: '20px',
+          display: 'flex',
+          alignItems: 'flex-end',
+        }}>
           <input
             accept="image/*"
             className={classes.input}
