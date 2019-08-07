@@ -385,6 +385,14 @@ export function GroupDetails({
         studentScales,
       });
 
+      console.log('groupdetails', groupDetails);
+      console.log('values', {
+        ...values,
+        semesters,
+        categories,
+        studentScales,
+      });
+
       setNoMarksMode(false);
     } else {
       // eslint-disable-next-line camelcase
@@ -754,7 +762,15 @@ export function GroupDetails({
     >
       <DialogContent>
         <PDFViewer style={{ width: '100%', height: '100%' }}>
-          <PrintableDocument />
+          <PrintableDocument
+            studentName={studentName}
+            moduleName={groupDetails.studentMarksDetails.module && groupDetails.studentMarksDetails.module.modul}
+            categories={values.categories}
+            years={groupDetails.studentMarksDetails.module.years}
+            slices={groupDetails.studentMarksDetails.module.slices}
+            studentMarks={groupDetails.marks}
+            studentScales={values.studentScales}
+          />
         </PDFViewer>
       </DialogContent>
       <DialogActions>
